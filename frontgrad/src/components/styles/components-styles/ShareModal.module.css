@@ -1,0 +1,196 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 41, 59, 0.18);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+  transition: background 0.2s;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 40px rgba(52, 137, 131, 0.22),
+    0 1.5px 8px rgba(0, 0, 0, 0.06);
+  min-width: 360px;
+  max-width: 480px;
+  width: 90vw;
+  padding: 2.5rem 2.2rem 2.2rem 2.2rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: modalIn 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  background: none;
+  border: none;
+  font-size: 1.7rem;
+  color: #adb5bd;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.15s;
+}
+.closeBtn:hover {
+  color: #348983;
+}
+
+.title {
+  text-align: center;
+  color: #348983;
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: 0.01em;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.label {
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.row {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0.8rem;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+  background: #f8fafc;
+  color: #348983;
+  transition: border 0.15s;
+}
+.input:focus {
+  border: 1.5px solid #348983;
+  outline: none;
+}
+
+.select {
+  border-radius: 0.8rem;
+  border: 1px solid #e0e0e0;
+  background: #f8fafc;
+  color: #348983;
+  font-weight: 600;
+  padding: 0.65rem 1.1rem;
+  font-size: 1rem;
+  transition: border 0.15s;
+}
+.select:focus {
+  border: 1.5px solid #348983;
+  outline: none;
+}
+
+.primaryBtn {
+  background: linear-gradient(90deg, #348983 60%, #2dd4bf 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.8rem;
+  font-weight: 700;
+  padding: 0.65rem 1.3rem;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(52, 137, 131, 0.08);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.primaryBtn:hover {
+  background: linear-gradient(90deg, #2dd4bf 40%, #348983 100%);
+  box-shadow: 0 4px 16px rgba(52, 137, 131, 0.13);
+}
+
+.cursorSection {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.cursorLabel {
+  color: #348983;
+  font-weight: 600;
+}
+
+.colorInput {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgba(52, 137, 131, 0.08);
+}
+
+.collabHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.collabLabel {
+  color: #348983;
+  font-weight: 600;
+}
+
+.manageLink {
+  color: #348983;
+  font-size: 0.98rem;
+  margin-left: auto;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.manageLink:hover {
+  color: #2dd4bf;
+}
+
+.avatars {
+  display: flex;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+
+.avatarA,
+.avatarB {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 1px 4px rgba(52, 137, 131, 0.08);
+}
+.avatarA {
+  background: linear-gradient(135deg, #348983 60%, #2dd4bf 100%);
+}
+.avatarB {
+  background: #adb5bd;
+}

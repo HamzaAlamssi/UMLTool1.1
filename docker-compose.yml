@@ -1,0 +1,31 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: myapp-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: umldatabase
+      MYSQL_ROOT_PASSWORD: "0000"
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: myapp-backend
+    restart: always
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mysql
+
+  frontgrad:
+    build: ./frontgrad
+    container_name: myapp-frontend
+    restart: always
+    ports:
+      - "3000:5000"
+
+volumes:
+  dbdata:

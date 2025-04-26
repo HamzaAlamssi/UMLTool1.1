@@ -1,0 +1,102 @@
+.header {
+  width: 100vw;
+  left: 0;
+  top: 0;
+  height: 70px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03);
+  position: fixed;
+  z-index: 1100;
+  border-radius: 0 0 1.2rem 1.2rem;
+}
+
+.logoSearch {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(52, 137, 131, 0.08);
+  object-fit: cover;
+}
+
+.searchContainer {
+  position: relative;
+  width: 320px;
+  display: flex;
+  align-items: center;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.searchBar {
+  flex: 1;
+  padding: 0.7rem 2.2rem 0.7rem 1.2rem; /* more right padding for icon */
+  border: none;
+  border-radius: 1.5rem;
+  font-size: 1rem;
+  background: transparent;
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+
+.searchContainer:focus-within {
+  border-color: #348983;
+  box-shadow: 0 4px 16px rgba(52, 137, 131, 0.12);
+}
+
+.searchIcon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.searchIcon:hover {
+  opacity: 1;
+}
+
+.searchBar::placeholder {
+  color: #b0b0b0;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.iconButton {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 50%;
+  transition: background 0.2s, border 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconButton:hover {
+  background: #e6f2f1;
+  border: 1px solid #348983;
+}
+
+.buttonIcon {
+  width: 22px;
+  height: 22px;
+}

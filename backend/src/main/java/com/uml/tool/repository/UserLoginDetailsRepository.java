@@ -1,0 +1,18 @@
+package com.uml.tool.repository;
+
+import com.uml.tool.DTO.UserLoginDTO;
+import com.uml.tool.model.UserLoginDetails;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface UserLoginDetailsRepository extends JpaRepository<UserLoginDetails, String> {
+    Optional<UserLoginDTO> findByEmail(String email);
+
+    Optional<UserLoginDetails> findByUsername(String username);
+
+    void deleteByEmail(String email);
+
+    List<UserLoginDetails> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email);
+}
