@@ -36,14 +36,24 @@ public class ProjectController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/shared")
+    public List<ProjectDTO> getSharedProjects(@RequestParam String email) {
+        // Only show projects where user is a group member, not owner
+        return projectService.getSharedProjects(email)
+                .stream()
+                .map(ProjectDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     @PutMapping("/updateDiagram")
     public Project updateDiagram(@RequestParam Long projectId, @RequestBody String diagramJson) {
         return projectService.updateDiagram(projectId, diagramJson);
     }
 
     @GetMapping("/{id:\\d+}")
-    public Project getProjectById(@PathVariable Long id) {
-        return projectService.getProjectById(id);
+    public ProjectDTO getProjectById(@PathVariable Long id) {
+        Project project = projectService.getProjectById(id);
+        return ProjectDTO.fromEntity(project);
     }
 
     @DeleteMapping("/{id:\\d+}")

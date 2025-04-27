@@ -38,7 +38,8 @@ function ProjectPage() {
           editorRef.current.type = project.diagramType;
         } catch {}
       }
-      if (project.diagramJson) {
+      // Only parse diagramJson if it's a non-empty string
+      if (project.diagramJson && project.diagramJson.trim() !== "") {
         try {
           const diagram = JSON.parse(project.diagramJson);
           // Apollon expects the model under .model
@@ -48,8 +49,10 @@ function ProjectPage() {
             editorRef.current.model = diagram;
           }
         } catch (e) {
-          // ignore invalid JSON
+          // ignore invalid JSON, leave Apollon empty
         }
+      } else {
+        // If diagramJson is empty string, let Apollon render blank canvas (do not set model)
       }
     }
   }, [project]);
@@ -89,6 +92,7 @@ function ProjectPage() {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         onManageCollaborators={handleOpenCollaborators}
+        projectId={projectId}
       />
       <CollaboratorsModal
         open={collabOpen}

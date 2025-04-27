@@ -25,6 +25,7 @@ public class ProjectService {
                 .name(name)
                 .diagramType(diagramType)
                 .owner(owner)
+                .diagramJson("{\"elements\":{},\"relationships\":{}}") // <-- valid Apollon model
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -44,7 +45,7 @@ public class ProjectService {
     }
 
     public List<Project> getSharedProjects(String email) {
-        return projectRepository.findProjectsSharedWithUser(email);
+        return projectRepository.findSharedProjectsByEmail(email);
     }
 
     public Project getProjectById(Long id) {
