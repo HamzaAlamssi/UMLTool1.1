@@ -23,13 +23,14 @@ public class ProjectController {
 
     @PostMapping("/create")
     public Project createProject(@RequestBody ProjectCreateDTO dto) {
-        return projectService.createProject(dto.getName(), dto.getDiagramType(), dto.getOwnerUsername());
+        // Change to use ownerEmail instead of ownerUsername
+        return projectService.createProject(dto.getName(), dto.getDiagramType(), dto.getOwnerEmail());
     }
 
     @GetMapping("/own")
-    public List<ProjectDTO> getOwnProjects(@RequestParam String username) {
+    public List<ProjectDTO> getOwnProjects(@RequestParam String email) {
         // Only return minimal project info, not full entity
-        return projectService.getOwnProjects(username)
+        return projectService.getOwnProjectsByEmail(email)
                 .stream()
                 .map(ProjectDTO::fromEntity)
                 .collect(Collectors.toList());
@@ -40,11 +41,12 @@ public class ProjectController {
         return projectService.updateDiagram(projectId, diagramJson);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public Project getProjectById(@PathVariable Long id) {
         return projectService.getProjectById(id);
     }
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/{id:\\d+}")
     public void deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
     }

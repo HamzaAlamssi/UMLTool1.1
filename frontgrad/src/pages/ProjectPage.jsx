@@ -28,20 +28,28 @@ function ProjectPage() {
   useEffect(() => {
     if (
       project &&
-      project.diagramJson &&
       editorRef.current &&
+      !editorRef.current.isDestroyed &&
       typeof editorRef.current.model !== "undefined"
     ) {
-      try {
-        const diagram = JSON.parse(project.diagramJson);
-        // Apollon expects the model under .model
-        if (diagram.model) {
-          editorRef.current.model = diagram.model;
-        } else {
-          editorRef.current.model = diagram;
+      // Set diagram type based on project.diagramType
+      if (editorRef.current.type && project.diagramType) {
+        try {
+          editorRef.current.type = project.diagramType;
+        } catch {}
+      }
+      if (project.diagramJson) {
+        try {
+          const diagram = JSON.parse(project.diagramJson);
+          // Apollon expects the model under .model
+          if (diagram.model) {
+            editorRef.current.model = diagram.model;
+          } else {
+            editorRef.current.model = diagram;
+          }
+        } catch (e) {
+          // ignore invalid JSON
         }
-      } catch (e) {
-        // ignore invalid JSON
       }
     }
   }, [project]);
@@ -75,7 +83,7 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <ApollonEditor ref={editorRef} />
+      <ApollonEditor ref={editorRef} diagramType={project?.diagramType} />
       {chatOpen && <ChatSidebar onClose={() => setChatOpen(false)} />}
       <ShareModal
         open={shareOpen}
