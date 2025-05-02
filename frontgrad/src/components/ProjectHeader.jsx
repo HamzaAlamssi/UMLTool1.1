@@ -156,30 +156,30 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
         </div>
         {/* Import dropdown */}
         <div className={styles.dropdown}>
-          <button className={styles.menuButton}>
-            <MdFileUpload style={{ marginRight: 4 }} /> Import
-            <MdExpandMore style={{ fontSize: "1.1em", marginLeft: 6 }} />
-          </button>
-          <div className={styles.dropdownContent}>
-            <button
-              className={styles.dropdownItem}
-              onClick={() => fileInputRef.current.click()}
-            >
-              JSON
-            </button>
-            <input
-              type="file"
-              accept=".json"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              onChange={importDiagram}
-            />
-          </div>
+          {/*<button className={styles.menuButton}>*/}
+          {/*  <MdFileUpload style={{ marginRight: 4 }} /> Import*/}
+          {/*  <MdExpandMore style={{ fontSize: "1.1em", marginLeft: 6 }} />*/}
+          {/*</button>*/}
+          {/*<div className={styles.dropdownContent}>*/}
+          {/*  <button*/}
+          {/*    className={styles.dropdownItem}*/}
+          {/*    onClick={() => fileInputRef.current.click()}*/}
+          {/*  >*/}
+          {/*    JSON*/}
+          {/*  </button>*/}
+          {/*  <input*/}
+          {/*    type="file"*/}
+          {/*    accept=".json"*/}
+          {/*    ref={fileInputRef}*/}
+          {/*    style={{ display: "none" }}*/}
+          {/*    onChange={importDiagram}*/}
+          {/*  />*/}
+          {/*</div>*/}
         </div>
         {/* Export button */}
-        <button className={styles.menuButton} onClick={exportDiagram}>
-          <MdFileDownload style={{ marginRight: 4 }} /> Export
-        </button>
+        {/*<button className={styles.menuButton} onClick={exportDiagram}>*/}
+        {/*  <MdFileDownload style={{ marginRight: 4 }} /> Export*/}
+        {/*</button>*/}
         {/* Help button */}
         <button className={styles.menuButton}>
           <MdHelpOutline style={{ marginRight: 4 }} /> Help

@@ -4,6 +4,7 @@ import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
 import CollaboratorsModal from "../components/CollaboratorsModal";
+import UmlEditor from "./yaqeen.jsx";
 import { useParams } from "react-router-dom";
 
 function ProjectPage() {
@@ -24,27 +25,6 @@ function ProjectPage() {
       .then((data) => setProject(data));
   }, [projectId]);
 
-  // Load diagram JSON into Apollon editor when ready
-  useEffect(() => {
-    if (
-      project &&
-      project.diagramJson &&
-      editorRef.current &&
-      typeof editorRef.current.model !== "undefined"
-    ) {
-      try {
-        const diagram = JSON.parse(project.diagramJson);
-        // Apollon expects the model under .model
-        if (diagram.model) {
-          editorRef.current.model = diagram.model;
-        } else {
-          editorRef.current.model = diagram;
-        }
-      } catch (e) {
-        // ignore invalid JSON
-      }
-    }
-  }, [project]);
 
   const handleOpenCollaborators = () => {
     setShareOpen(false);
@@ -75,7 +55,7 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <ApollonEditor ref={editorRef} />
+      <UmlEditor ref={editorRef} />
       {chatOpen && <ChatSidebar onClose={() => setChatOpen(false)} />}
       <ShareModal
         open={shareOpen}
