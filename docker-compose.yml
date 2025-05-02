@@ -7,7 +7,7 @@ services:
       MYSQL_DATABASE: umldatabase
       MYSQL_ROOT_PASSWORD: "0000"
     ports:
-      - "3306:3306"
+      - "3301:3301"
     volumes:
       - dbdata:/var/lib/mysql
 
