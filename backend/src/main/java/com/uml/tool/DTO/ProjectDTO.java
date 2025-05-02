@@ -10,6 +10,7 @@ public class ProjectDTO {
     private String diagramType;
     private String createdAt;
     private String ownerUsername;
+    private String diagramJson;
 
     public static ProjectDTO fromEntity(Project p) {
         ProjectDTO dto = new ProjectDTO();
@@ -17,7 +18,10 @@ public class ProjectDTO {
         dto.name = p.getName();
         dto.diagramType = p.getDiagramType();
         dto.createdAt = p.getCreatedAt() != null ? p.getCreatedAt().toString() : null;
-        dto.ownerUsername = p.getOwner() != null ? p.getOwner().getUsername() : null;
+        dto.ownerUsername = (p.getOwner() != null && p.getOwner().getUsername() != null)
+            ? p.getOwner().getUsername()
+            : "";
+        dto.diagramJson = p.getDiagramJson(); // <-- add this line
         return dto;
     }
 }

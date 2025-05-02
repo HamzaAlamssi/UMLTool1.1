@@ -10,6 +10,6 @@ import java.util.List;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwner(UserLoginDetails owner);
 
-    @Query("SELECT DISTINCT p FROM Project p JOIN p.groups g JOIN g.members m WHERE m.user.email = :email")
-    List<Project> findProjectsSharedWithUser(String email);
+    @Query("SELECT gm.group.project FROM GroupMember gm WHERE gm.user.email = :email AND gm.group.project.owner.email <> :email")
+    List<Project> findSharedProjectsByEmail(String email);
 }
