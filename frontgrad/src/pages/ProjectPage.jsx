@@ -25,7 +25,6 @@ function ProjectPage() {
       .then((data) => setProject(data));
   }, [projectId]);
 
-
   const handleOpenCollaborators = () => {
     setShareOpen(false);
     setCollabOpen(true);
@@ -61,6 +60,7 @@ function ProjectPage() {
         open={shareOpen}
         onClose={() => setShareOpen(false)}
         onManageCollaborators={handleOpenCollaborators}
+        projectId={projectId}
       />
       <CollaboratorsModal
         open={collabOpen}

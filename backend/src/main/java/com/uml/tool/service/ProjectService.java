@@ -18,13 +18,14 @@ public class ProjectService {
     @Autowired
     private UserRepository userRepository;
 
-    public Project createProject(String name, String diagramType, String ownerUsername) {
-        UserLoginDetails owner = userRepository.findByUsername(ownerUsername)
+    public Project createProject(String name, String diagramType, String ownerEmail) {
+        UserLoginDetails owner = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
         Project project = Project.builder()
                 .name(name)
                 .diagramType(diagramType)
                 .owner(owner)
+                .diagramJson("{\"elements\":{},\"relationships\":{}}") // <-- valid Apollon model
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -37,8 +38,14 @@ public class ProjectService {
         return projectRepository.findByOwner(owner);
     }
 
+    public List<Project> getOwnProjectsByEmail(String email) {
+        UserLoginDetails owner = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return projectRepository.findByOwner(owner);
+    }
+
     public List<Project> getSharedProjects(String email) {
-        return projectRepository.findProjectsSharedWithUser(email);
+        return projectRepository.findSharedProjectsByEmail(email);
     }
 
     public Project getProjectById(Long id) {
