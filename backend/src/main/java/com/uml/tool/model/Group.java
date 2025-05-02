@@ -15,12 +15,12 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "project_id")
+    @OneToOne
+    @JoinColumn(name = "project_id", unique = true)
     private Project project;
 
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    private String name;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> members;
 }

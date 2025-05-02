@@ -29,6 +29,6 @@ public class Project {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private List<Group> groups;
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    private Group group;
 }
