@@ -4,6 +4,7 @@ import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
 import CollaboratorsModal from "../components/CollaboratorsModal";
+import UmlEditor from "./yaqeen.jsx";
 import { useParams } from "react-router-dom";
 
 function ProjectPage() {
@@ -23,39 +24,6 @@ function ProjectPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setProject(data));
   }, [projectId]);
-
-  // Load diagram JSON into Apollon editor when ready
-  useEffect(() => {
-    if (
-      project &&
-      editorRef.current &&
-      !editorRef.current.isDestroyed &&
-      typeof editorRef.current.model !== "undefined"
-    ) {
-      // Set diagram type based on project.diagramType
-      if (editorRef.current.type && project.diagramType) {
-        try {
-          editorRef.current.type = project.diagramType;
-        } catch {}
-      }
-      // Only parse diagramJson if it's a non-empty string
-      if (project.diagramJson && project.diagramJson.trim() !== "") {
-        try {
-          const diagram = JSON.parse(project.diagramJson);
-          // Apollon expects the model under .model
-          if (diagram.model) {
-            editorRef.current.model = diagram.model;
-          } else {
-            editorRef.current.model = diagram;
-          }
-        } catch (e) {
-          // ignore invalid JSON, leave Apollon empty
-        }
-      } else {
-        // If diagramJson is empty string, let Apollon render blank canvas (do not set model)
-      }
-    }
-  }, [project]);
 
   const handleOpenCollaborators = () => {
     setShareOpen(false);
@@ -86,7 +54,7 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <ApollonEditor ref={editorRef} diagramType={project?.diagramType} />
+      <UmlEditor ref={editorRef} />
       {chatOpen && <ChatSidebar onClose={() => setChatOpen(false)} />}
       <ShareModal
         open={shareOpen}
