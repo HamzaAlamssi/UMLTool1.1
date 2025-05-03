@@ -24,34 +24,29 @@ function ProjectPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         setProject(data);
-        if (data && data.diagram_json) {
-          let parsed;
+        if (data) {
+          console.info(`[ProjectPage] Loaded project: id=${data.id}, name=${data.name}`);
+        }
+        // Accept both camelCase and snake_case for diagramJson
+        const diagramJsonRaw = data?.diagramJson ?? data?.diagram_json;
+        if (diagramJsonRaw) {
+          let parsed = diagramJsonRaw;
           try {
-            parsed = typeof data.diagram_json === "string"
-              ? JSON.parse(data.diagram_json)
-              : data.diagram_json;
+            if (typeof parsed === "string") parsed = JSON.parse(parsed);
+            if (typeof parsed === "string") parsed = JSON.parse(parsed);
           } catch (e) {
             parsed = null;
           }
           setInitialModel(parsed);
-          console.log("ProjectPage: Sending initialModel to UmlEditor:", parsed);
+          if (parsed && typeof parsed === "object") {
+            console.info(`[ProjectPage] Set initialModel: classes=${Array.isArray(parsed.classes) ? parsed.classes.length : 0}, relationships=${Array.isArray(parsed.relationships) ? parsed.relationships.length : 0}`);
+          }
         } else {
           setInitialModel(null);
-          console.log("ProjectPage: No diagram_json, sending null to UmlEditor");
+          console.info("[ProjectPage] No diagram_json found, initialModel set to null");
         }
       });
   }, [projectId]);
-
-  useEffect(() => {
-    console.log("ProjectPage: editorRef.current =", editorRef.current);
-  });
-
-  useEffect(() => {
-    if (editorRef.current) {
-      console.log("ProjectPage: classes =", editorRef.current.classes);
-      console.log("ProjectPage: relationships =", editorRef.current.relationships);
-    }
-  });
 
   return (
     <>
