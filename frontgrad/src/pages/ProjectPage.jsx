@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import ApollonEditor from "../components/ApollonEditor";
 import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
@@ -65,7 +64,7 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <UmlEditor ref={editorRef} />
+      <UmlEditor ref={editorRef} projectId={projectId} />
       {chatOpen && (
         <ChatSidebar
           onClose={() => setChatOpen(false)}
