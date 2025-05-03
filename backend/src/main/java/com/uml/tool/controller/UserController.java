@@ -46,16 +46,41 @@ public class UserController {
     }
 
     @PutMapping("/{email}")
-    public UserDTO updateUser(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
-        UserLoginDetails updated = new UserLoginDetails();
-        updated.setEmail(dto.getEmail());
-        updated.setUsername(dto.getUsername());
-        updated.setFirstName(dto.getFirstName());
-        updated.setLastName(dto.getLastName());
-        updated.setOccupation(dto.getOccupation());
-        updated.setProfileImage(dto.getProfileImage());
-        UserLoginDetails saved = userService.updateUserProfile(email, updated);
-        return toDTO(saved);
+    public ResponseEntity<?> updateUser(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
+        // Only check for duplicate username/email if they are being changed to a value that belongs to another user
+        if (dto.getUsername() != null) {
+            userService.getByUsername(dto.getUsername()).ifPresent(existingUser -> {
+                if (!existingUser.getEmail().equals(email)) {
+                    throw new RuntimeException("Username already exists");
+                }
+            });
+        }
+        if (dto.getEmail() != null) {
+            userService.getByEmail(dto.getEmail()).ifPresent(existingUser -> {
+                if (!existingUser.getEmail().equals(email)) {
+                    throw new RuntimeException("Email already exists");
+                }
+            });
+        }
+        try {
+            UserLoginDetails updated = new UserLoginDetails();
+            updated.setEmail(dto.getEmail());
+            updated.setUsername(dto.getUsername());
+            updated.setFirstName(dto.getFirstName());
+            updated.setLastName(dto.getLastName());
+            updated.setOccupation(dto.getOccupation());
+            updated.setProfileImage(dto.getProfileImage());
+            UserLoginDetails saved = userService.updateUserProfile(email, updated);
+            return ResponseEntity.ok().body(saved);
+        } catch (RuntimeException ex) {
+            String msg = ex.getMessage();
+            if ("Username already exists".equals(msg) || "Email already exists".equals(msg)) {
+                return ResponseEntity.status(409).body("{\"error\":\"" + msg + "\"}");
+            }
+            return ResponseEntity.status(400).body("{\"error\":\"Failed to update user: " + ex.getMessage() + "\"}");
+        } catch (Exception ex) {
+            return ResponseEntity.status(400).body("{\"error\":\"Failed to update user: " + ex.getMessage() + "\"}");
+        }
     }
 
     @DeleteMapping

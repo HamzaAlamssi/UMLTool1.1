@@ -49,24 +49,23 @@ const DeleteUserPage = () => {
   };
 
   const deleteSelected = async () => {
-    if (!window.confirm("Are you sure you want to delete selected users?"))
-      return;
+    if (!window.confirm("Are you sure you want to delete selected users?")) return;
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:9000/api/users", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(selected),
-      });
-      if (res.ok) {
-        setSuccess("Users deleted successfully!");
-        setSelected([]);
-        fetchUsers(searchTerm);
-      } else {
-        setError(await res.text());
-      }
+      // Call admin endpoint for each selected user
+      await Promise.all(
+        selected.map(async (email) => {
+          const res = await fetch(`http://localhost:9000/api/admin/delete-user/${encodeURIComponent(email)}`, {
+            method: "DELETE",
+            credentials: "include",
+          });
+          if (!res.ok) throw new Error(await res.text());
+        })
+      );
+      setSuccess("Users deleted successfully!");
+      setSelected([]);
+      fetchUsers(searchTerm);
     } catch (err) {
       setError(err.message);
     }
