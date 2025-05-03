@@ -1,5 +1,4 @@
-// === Import/Export logic ===
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 // === CSS-in-JS styles ===
 const styless = `body {
@@ -176,6 +175,7 @@ const styless = `body {
 .visibility-select option {
     padding: 4px;
 }`;
+
 const styles = {
     container: {
         display: 'flex', // Add flex display
@@ -250,7 +250,8 @@ const styles = {
     },
 };
 
-function UmlEditor() {
+const UmlEditor = forwardRef(({ initialModel }, ref) => {
+    const editorInstance = useRef();
     // === State ===
     const canvasRef = useRef(null);
     const [classes, setClasses] = useState([]);
@@ -268,6 +269,38 @@ function UmlEditor() {
     const [resizeTarget, setResizeTarget] = useState(null);
     const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
     const resizeHandleSize = 14;
+
+    // Log model changes
+    useEffect(() => {
+        console.log("UmlEditor: classes changed", classes);
+        console.log("UmlEditor: relationships changed", relationships);
+    }, [classes, relationships]);
+
+    // Log when ref is set
+    useImperativeHandle(ref, () => {
+        console.log("UmlEditor: useImperativeHandle set", { classes, relationships });
+        return {
+            get classes() {
+                return classes;
+            },
+            get relationships() {
+                return relationships;
+            },
+            setModel(newClasses, newRelationships) {
+                setClasses(Array.isArray(newClasses) ? newClasses : []);
+                setRelationships(Array.isArray(newRelationships) ? newRelationships : []);
+            }
+        };
+    }, [classes, relationships]);
+
+    // When initialModel changes, set the model in the editor
+    useEffect(() => {
+        if (initialModel) {
+            setClasses(initialModel.classes || []);
+            setRelationships(initialModel.relationships || []);
+            console.log("UmlEditor: initialModel applied", initialModel);
+        }
+    }, [initialModel]);
 
     function handleCanvasMouseDown(e) {
         if (relationMode) return; // Don't drag in relation mode
@@ -1781,47 +1814,47 @@ function UmlEditor() {
 
     const fileInputRef = useRef();
 
-    function handleSaveJson() {
-        const data = { classes, relationships };
-        const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "uml_project.json";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(url), 500);
-        a.remove();
-    }
+    // function handleSaveJson() {
+    //     const data = { classes, relationships };
+    //     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = "uml_project.json";
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     setTimeout(()=>URL.revokeObjectURL(url), 500);
+    //     a.remove();
+    // }
 
-    function handleLoadJson(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (Array.isArray(data.classes) && Array.isArray(data.relationships)) {
-                    setClasses(data.classes);
-                    setRelationships(data.relationships);
-                } else {
-                    alert("Invalid JSON project format.");
-                }
-            } catch (err) {
-                alert("Could not parse JSON: " + err.message);
-            }
-        };
-        reader.readAsText(file);
-    }
+    // function handleLoadJson(e) {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+    //     const reader = new FileReader();
+    //     reader.onload = function(ev) {
+    //         try {
+    //             const data = JSON.parse(ev.target.result);
+    //             if (Array.isArray(data.classes) && Array.isArray(data.relationships)) {
+    //                 setClasses(data.classes);
+    //                 setRelationships(data.relationships);
+    //             } else {
+    //                 alert("Invalid JSON project format.");
+    //             }
+    //         } catch (err) {
+    //             alert("Could not parse JSON: " + err.message);
+    //         }
+    //     };
+    //     reader.readAsText(file);
+    // }
 
-    function handleSavePng() {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const link = document.createElement('a');
-        link.download = 'uml-diagram.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    }
+    // function handleSavePng() {
+    //     const canvas = canvasRef.current;
+    //     if (!canvas) return;
+    //     const link = document.createElement('a');
+    //     link.download = 'uml-diagram.png';
+    //     link.href = canvas.toDataURL("image/png");
+    //     link.click();
+    // }
 
     // Relationship mode toggle handler
     function handleRelationModeToggle(e) {
@@ -1899,12 +1932,12 @@ function UmlEditor() {
                     </select>
                     </div>
                     <div className="toolbar-group export-group">
-                        <span className="toolbar-label">Export/Import</span>
+                        {/* <span className="toolbar-label">Export/Import</span>
                         <button className="toolbar-btn" onClick={handleSavePng}>Save PNG</button>
                         <button className="toolbar-btn" onClick={handleSaveJson}>Save JSON</button>
                         <label style={{fontSize: 14, color: '#3347b0', margin: '4px 0 0 0'}}>Import JSON:
                             <input type="file" ref={fileInputRef} accept=".json" onChange={handleLoadJson} style={{marginLeft: 6, fontSize: 13, borderRadius: 6, border: '1.2px solid #d4defc', background: '#eef2fd', padding: '2px 4px'}} />
-                        </label>
+                        </label> */}
                         <button className="toolbar-btn" style={{ background: '#f06d6d' }} onClick={() => {
                             if (window.confirm('Are you sure you want to clear the canvas? This cannot be undone.')) {
                                 // === Import/Export logic ===
@@ -1988,8 +2021,6 @@ function UmlEditor() {
             </div>
         </>
     );
-}
+});
 
 export default UmlEditor;
-
-// === Import/Export logic ===

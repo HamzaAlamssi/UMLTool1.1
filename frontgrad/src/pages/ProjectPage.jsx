@@ -13,27 +13,45 @@ function ProjectPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
   const [project, setProject] = useState(null);
+  const [initialModel, setInitialModel] = useState(null);
   const { id: projectId } = useParams();
 
-  // Fetch project by ID from URL
   useEffect(() => {
     if (!projectId) return;
     fetch(`http://localhost:9000/api/projects/${projectId}`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setProject(data));
+      .then((data) => {
+        setProject(data);
+        if (data && data.diagram_json) {
+          let parsed;
+          try {
+            parsed = typeof data.diagram_json === "string"
+              ? JSON.parse(data.diagram_json)
+              : data.diagram_json;
+          } catch (e) {
+            parsed = null;
+          }
+          setInitialModel(parsed);
+          console.log("ProjectPage: Sending initialModel to UmlEditor:", parsed);
+        } else {
+          setInitialModel(null);
+          console.log("ProjectPage: No diagram_json, sending null to UmlEditor");
+        }
+      });
   }, [projectId]);
 
-  const handleOpenCollaborators = () => {
-    setShareOpen(false);
-    setCollabOpen(true);
-  };
+  useEffect(() => {
+    console.log("ProjectPage: editorRef.current =", editorRef.current);
+  });
 
-  const handleOpenShare = () => {
-    setCollabOpen(false);
-    setShareOpen(true);
-  };
+  useEffect(() => {
+    if (editorRef.current) {
+      console.log("ProjectPage: classes =", editorRef.current.classes);
+      console.log("ProjectPage: relationships =", editorRef.current.relationships);
+    }
+  });
 
   return (
     <>
@@ -54,18 +72,24 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <UmlEditor ref={editorRef} />
+      <UmlEditor ref={editorRef} initialModel={initialModel} />
       {chatOpen && <ChatSidebar onClose={() => setChatOpen(false)} />}
       <ShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
-        onManageCollaborators={handleOpenCollaborators}
+        onManageCollaborators={() => {
+          setShareOpen(false);
+          setCollabOpen(true);
+        }}
         projectId={projectId}
       />
       <CollaboratorsModal
         open={collabOpen}
         onClose={() => setCollabOpen(false)}
-        onAdd={handleOpenShare}
+        onAdd={() => {
+          setCollabOpen(false);
+          setShareOpen(true);
+        }}
       />
     </>
   );
