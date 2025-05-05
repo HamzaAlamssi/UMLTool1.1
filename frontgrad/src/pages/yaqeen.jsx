@@ -72,6 +72,20 @@ const styless = `body {
     margin-top: 2px;
     text-align: center;
 }
+.toolbar-btn-generate{
+    font-size: 15px;
+    background: blue;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 10px;
+    margin: 0;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.15s;
+    box-shadow: 0 1.5px 5px #4668d911;
+    outline: none;
+}
 .toolbar-btn {
     font-size: 15px;
     background: linear-gradient(90deg, #348983 70%, #5eead4 100%);
@@ -223,7 +237,7 @@ const styles = {
     padding: '24px 32px 22px 32px',
     borderRadius: 12,
     boxShadow: '0 8px 32px #4668D933',
-    width: 340,
+    width: 540,
     display: 'flex',
     flexDirection: 'column',
     gap: 14,
@@ -2320,6 +2334,118 @@ function UmlEditor({ projectId }) {
     setPendingRelation(prev => ({ ...prev, type: e.target.value }));
   }
 
+  const [generatedCode, setGeneratedCode] = useState('');
+
+  function generateJavaCode(classes, relationships) {
+    const visibilityMap = {
+      'public': 'public',
+      'private': 'private',
+      'protected': 'protected',
+      'package': '/* package */'
+    };
+  
+    const parseAttribute = (attrName) => {
+      const [name, type] = attrName.split(':').map(s => s.trim());
+      return {
+        name: name || 'unknown',
+        type: type || 'String'
+      };
+    };
+  
+    const parseMethod = (methodName) => {
+      // Split into parts while handling return type
+      const parts = methodName.split(':').map(s => s.trim());
+      let returnType = 'void';
+      let signature = methodName;
+    
+      if (parts.length > 1) {
+        returnType = parts.pop();
+        signature = parts.join(':').trim();
+      }
+    
+      // Ensure signature has parentheses
+      if (!signature.includes('(') || !signature.endsWith(')')) {
+        signature = `${signature.replace(/\)?$/, '')}()`;
+      }
+    
+      // Extract method name and parameters
+      const [namePart, paramsPart] = signature.split(/\((.*)\)/s);
+      const params = paramsPart 
+        ? paramsPart.split(',')
+            .map(param => {
+              const [pName, pType] = param.split(':').map(s => s.trim());
+              return {
+                name: pName || 'param',
+                type: pType || 'Object'
+              };
+            })
+            .filter(p => p.name) // Remove empty parameters
+        : [];
+    
+      return {
+        name: namePart.trim(),
+        params,
+        returnType: returnType || 'void'
+      };
+    };
+  
+    let code = '';
+  
+    classes.forEach(cls => {
+      // Class declaration
+      code += `public class ${cls.name} `;
+      
+      // Handle inheritance
+      const inheritance = relationships.find(r => 
+        r.type === 'inheritance' && r.fromId === cls.id
+      );
+      if (inheritance) {
+        const parent = classes.find(c => c.id === inheritance.toId);
+        code += `extends ${parent?.name} `;
+      }
+      
+      code += '{\n';
+  
+      // Fields
+      cls.attributes.forEach(attr => {
+        const parsed = parseAttribute(attr.name);
+        code += `    ${visibilityMap[attr.visibility]} ${parsed.type} ${parsed.name};\n`;
+      });
+  
+      // Methods
+      cls.methods.forEach(method => {
+        const parsed = parseMethod(method.name);
+        code += `    ${visibilityMap[method.visibility]} ${parsed.returnType} ${parsed.name}(`;
+        code += parsed.params.map(p => `${p.type} ${p.name}`).join(', ');
+        code += `) {\n`;
+        code += `        // TODO: Implement method\n`;
+        code += `    }\n\n`;
+      });
+  
+      code += '}\n\n';
+    });
+  
+    return code;
+  }
+  
+  // Update the handleGenerateCode function
+  function handleGenerateCode() {
+    const hasNonClass = classes.some(c => c.type !== 'class');
+    if (hasNonClass) {
+      alert('Java code generation only supports class diagram elements!');
+      return;
+    }
+  
+    const code = generateJavaCode(classes, relationships);
+    setGeneratedCode(code);
+    setModal({ 
+      open: true, 
+      title: 'Generated Java Code', 
+      value: code,
+    });
+  }
+  
+
   // === Render ===
   return (
       <>
@@ -2337,6 +2463,11 @@ function UmlEditor({ projectId }) {
             <div className="toolbar-group">
               <span className="toolbar-label">Class</span>
               <button /*style={styles.button}*/ className="toolbar-btn" onClick={handleAddClass}>Add Class</button>
+            </div>
+            <div className="toolbar-group">
+              <button className="toolbar-btn-generate" onClick={handleGenerateCode}>
+              Generate Java Code
+              </button>
             </div>
             <div className="toolbar-group">
               <span  className="toolbar-label">Use Case</span>
@@ -2409,74 +2540,145 @@ function UmlEditor({ projectId }) {
 
           </div>
 
-          {modal.open && (
-              <div style={styles.modalOverlay} onClick={closeModal}>
-                <div style={styles.modal} onClick={e => e.stopPropagation()}>
-                  <span style={{ fontWeight: 'bold', fontSize: 18 }}>{modal.title}</span>
-                  <input
-                      style={styles.input}
-                      value={modal.value}
-                      onChange={e => setModal(m => ({ ...m, value: e.target.value }))}
-                      autoFocus
-                  />
-                  {modal.withVisibility && (
-                      <select
-                          style={{ ...styles.input, marginBottom: 12 }}
-                          value={modal.currentVisibility}
-                          onChange={e => setModal(m => ({ ...m, currentVisibility: e.target.value }))}
-                      >
-                        <option value="public">public (+)</option>
-                        <option value="private">private (-)</option>
-                        <option value="protected">protected (#)</option>
-                        <option value="package">package (~)</option>
-                      </select>
-                  )}
-                  <div>
-                    <button style={styles.button} onClick={() => {
-                      if (modal.withVisibility) {
-                        modal.callback({ name: modal.value, visibility: modal.currentVisibility });
-                      } else {
-                        modal.callback(modal.value);
-                      }
-                      closeModal();
-                    }}>OK</button>
-                    <button style={{ ...styles.button, background: '#bbb' }} onClick={closeModal}>Cancel</button>
-                  </div>
-                </div>
-              </div>
-              )}
-              {compRelModal && (
-            <div style={styles.modalOverlay} onClick={closeCompRelModal}>
-              <div style={styles.modal} onClick={e => e.stopPropagation()}>
-                <span style={{ fontWeight: 'bold', fontSize: 18 }}>Add Component Relationship</span>
-                <input
-                    style={styles.input}
-                    placeholder="First component name"
-                    value={compRelState.name1}
-                    onChange={e => setCompRelState(s => ({ ...s, name1: e.target.value }))}
-                    autoFocus
-                />
-                <input
-                    style={styles.input}
-                    placeholder="Second component name"
-                    value={compRelState.name2}
-                    onChange={e => setCompRelState(s => ({ ...s, name2: e.target.value }))}
-                />
-                <div style={{ fontSize: 15, marginBottom: 4 }}>Relationship:</div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <input type="radio" id="rel-provided" name="rel-type" value="provided" checked={compRelState.relType === 'provided'} onChange={() => setCompRelState(s => ({ ...s, relType: 'provided' }))} />
-                  <label htmlFor="rel-provided">First provides, Second requires</label>
-                </div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <input type="radio" id="rel-required" name="rel-type" value="required" checked={compRelState.relType === 'required'} onChange={() => setCompRelState(s => ({ ...s, relType: 'required' }))} />
-                  <label htmlFor="rel-required">First requires, Second provides</label>
-                </div>
-                <div style={{ marginTop: 10 }}>
-                  <button style={styles.button} onClick={handleCompRelOk}>OK</button>
-                  <button style={{ ...styles.button, background: '#bbb' }} onClick={closeCompRelModal}>Cancel</button>
-                </div>
-              </div>
-            </div>
+          {/* Java Code Generation Modal */}
+{modal.open && (
+  <div style={styles.modalOverlay} onClick={closeModal}>
+    <div style={styles.modal} onClick={e => e.stopPropagation()}>
+      <span style={{ 
+        fontWeight: 'bold', 
+        fontSize: 18, 
+        marginBottom: modal.title === 'Generated Java Code' ? 12 : 0 
+      }}>
+        {modal.title}
+      </span>
+
+      {modal.title === 'Generated Java Code' ? (
+        <pre style={{
+          background: '#f5f5f5',
+          padding: 16,
+          borderRadius: 6,
+          maxHeight: '60vh',
+          overflow: 'auto',
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+          width:'500px',
+          margin: 0,
+          fontFamily: 'monospace',
+          fontSize: 14
+        }}>
+          {modal.value}
+        </pre>
+      ) : (
+        <>
+          <input
+            style={styles.input}
+            value={modal.value}
+            onChange={e => setModal(m => ({ ...m, value: e.target.value }))}
+            autoFocus
+          />
+          {modal.withVisibility && (
+            <select
+              style={{ ...styles.input, marginBottom: 12 }}
+              value={modal.currentVisibility}
+              onChange={e => setModal(m => ({ ...m, currentVisibility: e.target.value }))}
+            >
+              <option value="public">public (+)</option>
+              <option value="private">private (-)</option>
+              <option value="protected">protected (#)</option>
+              <option value="package">package (~)</option>
+            </select>
+          )}
+        </>
+      )}
+
+      <div style={{ 
+        display: 'flex',
+        gap: 10,
+        marginTop: modal.title === 'Generated Java Code' ? 16 : 0 
+      }}>
+        {modal.title === 'Generated Java Code' ? (
+          <button style={styles.button} onClick={closeModal}>
+            Close
+          </button>
+        ) : (
+          <>
+            <button 
+              style={styles.button} 
+              onClick={() => {
+                if (modal.withVisibility) {
+                  modal.callback({ 
+                    name: modal.value, 
+                    visibility: modal.currentVisibility 
+                  });
+                } else {
+                  modal.callback(modal.value);
+                }
+                closeModal();
+              }}
+            >
+              OK
+            </button>
+            <button 
+              style={{ ...styles.button, background: '#bbb' }} 
+              onClick={closeModal}
+            >
+              Cancel
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+{/* Component Relationship Modal */}
+{compRelModal && (
+  <div style={styles.modalOverlay} onClick={closeCompRelModal}>
+    <div style={styles.modal} onClick={e => e.stopPropagation()}>
+      <span style={{ fontWeight: 'bold', fontSize: 18 }}>Add Component Relationship</span>
+      <input
+        style={styles.input}
+        placeholder="First component name"
+        value={compRelState.name1}
+        onChange={e => setCompRelState(s => ({ ...s, name1: e.target.value }))}
+        autoFocus
+      />
+      <input
+        style={styles.input}
+        placeholder="Second component name"
+        value={compRelState.name2}
+        onChange={e => setCompRelState(s => ({ ...s, name2: e.target.value }))}
+      />
+      <div style={{ fontSize: 15, marginBottom: 4 }}>Relationship:</div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <input 
+          type="radio" 
+          id="rel-provided" 
+          name="rel-type" 
+          value="provided" 
+          checked={compRelState.relType === 'provided'} 
+          onChange={() => setCompRelState(s => ({ ...s, relType: 'provided' }))} 
+        />
+        <label htmlFor="rel-provided">First provides, Second requires</label>
+      </div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <input 
+          type="radio" 
+          id="rel-required" 
+          name="rel-type" 
+          value="required" 
+          checked={compRelState.relType === 'required'} 
+          onChange={() => setCompRelState(s => ({ ...s, relType: 'required' }))} 
+        />
+        <label htmlFor="rel-required">First requires, Second provides</label>
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <button style={styles.button} onClick={handleCompRelOk}>OK</button>
+        <button style={{ ...styles.button, background: '#bbb' }} onClick={closeCompRelModal}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
         )}
         </div>
       </>
