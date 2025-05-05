@@ -262,7 +262,7 @@ function UmlEditor({ projectId }) {
   // === WebSocket setup ===
   useEffect(() => {
     if (!projectId) return;
-    const socket = new SockJS('http://localhost:9000/ws');
+    const socket = new SockJS('http://localhost:9000/ws' || 'http://localhost:5000/ws');
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,

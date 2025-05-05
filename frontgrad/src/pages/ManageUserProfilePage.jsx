@@ -26,7 +26,7 @@ const ProfileDashboard = () => {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:9000/auth/me", { credentials: "include" })
+    fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
       .then((res) =>
         res.ok ? res.json() : Promise.reject("Not authenticated")
       )

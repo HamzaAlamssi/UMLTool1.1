@@ -27,7 +27,7 @@ function ProjectPage() {
 
   // Fetch current user info
   useEffect(() => {
-    fetch("http://localhost:9000/auth/me", { credentials: "include" })
+    fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         console.log("Fetched currentUser:", data);
