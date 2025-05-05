@@ -266,13 +266,11 @@ function UmlEditor({ projectId }) {
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
-      debug: (str) => console.log('[STOMP]', str),
     });
     wsClientRef.current = client;
     client.onConnect = () => {
       console.log('STOMP connected');
       client.subscribe(`/topic/uml-project-${projectId}`, (message) => {
-        console.log('Received UML action:', message.body);
         const action = JSON.parse(message.body);
         if (action.type === 'add') {
           if (action.elementType === 'class') {
@@ -289,7 +287,7 @@ function UmlEditor({ projectId }) {
           }
         } else if (action.type === 'update') {
           if (action.elementType === 'class') {
-            setClasses(prev => prev.map(c => c.id === action.payload.id ? action.payload : c));
+            setClasses(prev => prev.map(c => c.id === action.payload.id ? { ...c, ...action.payload} : c));
           } else if (action.elementType === 'relationship') {
             setRelationships(prev => prev.map(r => r.id === action.payload.id ? action.payload : r));
           }
@@ -309,7 +307,6 @@ function UmlEditor({ projectId }) {
   // Helper to send UML actions
   const sendUmlAction = (action) => {
     if (wsClientRef.current && wsClientRef.current.connected) {
-      console.log('Sending UML action:', action);
       wsClientRef.current.publish({
         destination: '/app/uml.action',
         body: JSON.stringify(action),
@@ -394,6 +391,28 @@ function UmlEditor({ projectId }) {
   }
 
   function handleCanvasMouseUp() {
+    if (dragTarget !== null) {
+      const obj = classes.find(c => c.id === dragTarget);
+      if (obj && projectId) {
+        sendUmlAction({
+          type: 'update',
+          elementType: 'class',
+          payload: { id: obj.id, x: obj.x, y: obj.y }, // Only send id and new position
+          projectId,
+        });
+      }
+    }
+    if (resizeTarget !== null) {
+      const obj = classes.find(c => c.id === resizeTarget);
+      if (obj && projectId) {
+        sendUmlAction({
+          type: 'update',
+          elementType: 'class',
+          payload: { id: obj.id, x: obj.x, y: obj.y, width: obj.width, height: obj.height }, // Only send id and new size/position
+          projectId,
+        });
+      }
+    }
     setDragTarget(null);
     setResizeTarget(null);
   }
@@ -440,21 +459,21 @@ function UmlEditor({ projectId }) {
     };
   });
 
-  // Broadcast move/resize updates
-  useEffect(() => {
-    if (!dragTarget && !resizeTarget) return;
-    // Only broadcast when dragTarget or resizeTarget changes
-    const obj = classes.find(c => c.id === dragTarget || c.id === resizeTarget);
-    if (obj && projectId) {
-      sendUmlAction({
-        type: 'update',
-        elementType: 'class',
-        payload: obj,
-        projectId,
-      });
-    }
-    // eslint-disable-next-line
-  }, [classes, dragTarget, resizeTarget]);
+  // // Broadcast move/resize updates
+  // useEffect(() => {
+  //   if (!dragTarget && !resizeTarget) return;
+  //   // Only broadcast when dragTarget or resizeTarget changes
+  //   const obj = classes.find(c => c.id === dragTarget || c.id === resizeTarget);
+  //   if (obj && projectId) {
+  //     sendUmlAction({
+  //       type: 'update',
+  //       elementType: 'class',
+  //       payload: obj,
+  //       projectId,
+  //     });
+  //   }
+  //   // eslint-disable-next-line
+  // }, [classes, dragTarget, resizeTarget]);
 
   // === Modal logic ===
   const showModal = (title, value, callback, withVisibility = false, currentVisibility = 'public') => {
@@ -1332,7 +1351,6 @@ function UmlEditor({ projectId }) {
           ctx.fillText(rel.text, midX, midY - 6);
         }
         ctx.restore();
-        console.log('custom relationship loogggggg');
         return;
       }
     }
@@ -2059,7 +2077,7 @@ function UmlEditor({ projectId }) {
       payload: newRelationship,
       projectId
     });
-    //setRelationships(prev => [...prev, { fromId: comp1.id, toId: comp2.id, type: relType }]);
+    setRelationships(prev => [...prev, { fromId: comp1.id, toId: comp2.id, type: relType }]);
     setCompRelModal(false);
   }
 
