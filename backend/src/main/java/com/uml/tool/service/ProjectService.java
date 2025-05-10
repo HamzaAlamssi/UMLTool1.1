@@ -25,7 +25,7 @@ public class ProjectService {
                 .name(name)
                 .diagramType(diagramType)
                 .owner(owner)
-                .diagramJson("{\"elements\":{},\"relationships\":{}}") // <-- valid Apollon model
+                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") // <-- valid Apollon model
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

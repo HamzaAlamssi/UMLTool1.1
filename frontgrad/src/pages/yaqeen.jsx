@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect,useImperativeHandle, forwardRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -252,7 +252,8 @@ const styles = {
   },
 };
 
-function UmlEditor({ projectId }) {
+const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
+
   // === State ===
   const canvasRef = useRef(null);
   const [classes, setClasses] = useState([]);
@@ -317,6 +318,32 @@ function UmlEditor({ projectId }) {
     client.activate();
     return () => client.deactivate();
   }, [projectId]);
+
+      // Log when ref is set
+    useImperativeHandle(ref, () => {
+        console.log("UmlEditor: useImperativeHandle set", { classes, relationships });
+        return {
+            get classes() {
+                return classes;
+            },
+            get relationships() {
+                return relationships;
+            },
+            setModel(newClasses, newRelationships) {
+                setClasses(Array.isArray(newClasses) ? newClasses : []);
+                setRelationships(Array.isArray(newRelationships) ? newRelationships : []);
+            }
+        };
+    }, [classes, relationships]);
+
+    // When initialModel changes, set the model in the editor
+    useEffect(() => {
+        if (initialModel) {
+            setClasses(initialModel.classes || []);
+            setRelationships(initialModel.relationships || []);
+            console.log("UmlEditor: initialModel applied", initialModel);
+        }
+    }, [initialModel]);
 
   // Helper to send UML actions
   const sendUmlAction = (action) => {
@@ -2683,6 +2710,7 @@ function UmlEditor({ projectId }) {
         </div>
       </>
   );
-}
+});
+
 
 export default UmlEditor;
