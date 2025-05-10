@@ -23,8 +23,8 @@ public class ProjectController {
 
     @PostMapping("/create")
     public Project createProject(@RequestBody ProjectCreateDTO dto) {
-        // Change to use ownerEmail instead of ownerUsername
-        return projectService.createProject(dto.getName(), dto.getDiagramType(), dto.getOwnerEmail());
+        // Use new signature: (String name, String ownerEmail)
+        return projectService.createProject(dto.getName(), dto.getOwnerEmail());
     }
 
     @GetMapping("/own")

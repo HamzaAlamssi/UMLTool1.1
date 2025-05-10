@@ -28,9 +28,9 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
           }))
         );
       }
-    } catch (e) {
-      // Optionally handle error
-    } finally {
+    } catch (e) { 
+      console.error("Error fetching messages:", e);
+       } finally {
       setLoading(false);
     }
   };

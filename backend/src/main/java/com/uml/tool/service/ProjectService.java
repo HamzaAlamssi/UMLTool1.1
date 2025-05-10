@@ -18,12 +18,11 @@ public class ProjectService {
     @Autowired
     private UserRepository userRepository;
 
-    public Project createProject(String name, String diagramType, String ownerEmail) {
+    public Project createProject(String name, String ownerEmail) {
         UserLoginDetails owner = userRepository.findByEmail(ownerEmail)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
         Project project = Project.builder()
                 .name(name)
-                .diagramType(diagramType)
                 .owner(owner)
                 .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") // <-- valid Apollon model
                 .createdAt(LocalDateTime.now())
@@ -63,5 +62,9 @@ public class ProjectService {
 
     public void deleteProject(Long id) {
         projectRepository.deleteById(id);
+    }
+
+    public Project saveProject(Project project) {
+        return projectRepository.save(project);
     }
 }

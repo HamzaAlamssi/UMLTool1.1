@@ -7,7 +7,6 @@ import lombok.Data;
 public class ProjectDTO {
     private Long id;
     private String name;
-    private String diagramType;
     private String createdAt;
     private String ownerUsername;
     private String diagramJson;
@@ -16,12 +15,11 @@ public class ProjectDTO {
         ProjectDTO dto = new ProjectDTO();
         dto.id = p.getId();
         dto.name = p.getName();
-        dto.diagramType = p.getDiagramType();
         dto.createdAt = p.getCreatedAt() != null ? p.getCreatedAt().toString() : null;
         dto.ownerUsername = (p.getOwner() != null && p.getOwner().getUsername() != null)
             ? p.getOwner().getUsername()
             : "";
-        dto.diagramJson = p.getDiagramJson(); // <-- add this line
+        dto.diagramJson = p.getDiagramJson();
         return dto;
     }
 }
