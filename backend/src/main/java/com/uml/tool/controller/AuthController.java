@@ -70,10 +70,9 @@ public class AuthController {
     }
 
     // Endpoint to get current authenticated user
-    @GetMapping("/me")
+    @GetMapping("/aUser")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            // Return the principal details. You might choose to map it to a DTO if needed.
             return ResponseEntity.ok(authentication.getPrincipal());
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
