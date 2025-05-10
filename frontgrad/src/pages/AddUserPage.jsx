@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/AddUserPage.module.css";
@@ -14,6 +14,25 @@ const AddUserPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+  const messageTimeout = useRef(null);
+
+  const clearMessages = () => {
+    messageTimeout.current && clearTimeout(messageTimeout.current);
+    messageTimeout.current = setTimeout(() => {
+      setSuccess("");
+      setErrors({});
+    }, 3000);
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.firstName) errs.firstName = "First name is required.";
+    if (!formData.lastName) errs.lastName = "Last name is required.";
+    if (!formData.username) errs.username = "Username is required.";
+    if (!formData.email) errs.email = "Email is required.";
+    if (!formData.password) errs.password = "Password is required.";
+    return errs;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -24,8 +43,14 @@ const AddUserPage = () => {
     e.preventDefault();
     setErrors({});
     setSuccess("");
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      clearMessages();
+      return;
+    }
     try {
-      const res = await fetch("http://localhost:9000/api/users", {
+      const res = await fetch("http://localhost:9000/api/admin/add-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -40,16 +65,27 @@ const AddUserPage = () => {
           email: "",
           password: "",
         });
+        clearMessages();
+      } else if (res.status === 409) {
+        setErrors({ general: "User with this email or username already exists." });
+        clearMessages();
       } else if (res.status === 400) {
         const data = await res.json();
         setErrors(data);
+        clearMessages();
       } else {
         setErrors({ general: await res.text() });
+        clearMessages();
       }
     } catch (err) {
       setErrors({ general: err.message });
+      clearMessages();
     }
   };
+
+  useEffect(() => {
+    return () => messageTimeout.current && clearTimeout(messageTimeout.current);
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -60,7 +96,7 @@ const AddUserPage = () => {
       <main className={styles.main}>
         <div className={styles.formContainer}>
           <h1>Add New User</h1>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} autoComplete="off">
             <div className={styles.formGroup}>
               <label>First Name</label>
               <input
@@ -69,7 +105,11 @@ const AddUserPage = () => {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
+              {errors.firstName && (
+                <div className={styles.passwordStrength}>{errors.firstName}</div>
+              )}
             </div>
             <div className={styles.formGroup}>
               <label>Last Name</label>
@@ -79,7 +119,11 @@ const AddUserPage = () => {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
+              {errors.lastName && (
+                <div className={styles.passwordStrength}>{errors.lastName}</div>
+              )}
             </div>
             <div className={styles.formGroup}>
               <label>Username</label>
@@ -89,6 +133,7 @@ const AddUserPage = () => {
                 value={formData.username}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
               {errors.username && (
                 <div className={styles.passwordStrength}>{errors.username}</div>
@@ -102,6 +147,7 @@ const AddUserPage = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
               {errors.email && (
                 <div className={styles.passwordStrength}>{errors.email}</div>
@@ -116,6 +162,7 @@ const AddUserPage = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -131,10 +178,12 @@ const AddUserPage = () => {
               )}
             </div>
             {errors.general && (
-              <div className={styles.passwordStrength}>{errors.general}</div>
+              <div style={{ color: "#e74c3c", fontWeight: 600, marginBottom: "1rem", fontSize: "1.08rem" }}>
+                {errors.general}
+              </div>
             )}
             {success && (
-              <div style={{ color: "green", marginBottom: "1rem" }}>
+              <div style={{ color: "#388e3c", fontWeight: 600, marginBottom: "1rem", fontSize: "1.08rem" }}>
                 {success}
               </div>
             )}
