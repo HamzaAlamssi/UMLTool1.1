@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import {
-  MdFileDownload,
   MdHelpOutline,
   MdExpandMore,
   MdInsertDriveFile,
@@ -21,76 +20,80 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
   const fileInputRef = useRef(null);
   const { id: projectId } = useParams();
 
+  // Export canvas model as JSON (same as yaqeen.jsx)
   const exportDiagram = () => {
-    if (!editorInstance?.current) return;
-
-    const model = editorInstance.current.model;
-    if (!model) return alert("Model is empty or undefined");
-
-    const diagramData = {
-      id: crypto.randomUUID(),
-      title: "Use Case Diagram",
-      model,
-      lastUpdate: new Date().toISOString(),
-    };
-
-    const blob = new Blob([JSON.stringify(diagramData, null, 2)], {
-      type: "application/json",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "diagram.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importDiagram = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const jsonData = JSON.parse(e.target.result);
-
-        if (!jsonData.model) throw new Error("Missing model");
-
-        let model = jsonData.model;
-        model.elements = model.elements ?? {};
-        model.relationships = model.relationships ?? {};
-
-        if (editorInstance.current) {
-          editorInstance.current.model = model;
-          console.log("✅ Imported successfully");
-        }
-      } catch (err) {
-        console.error("❌ Import failed:", err.message);
-      }
-    };
-
-    reader.readAsText(file);
-  };
-
-  const saveDiagramToDatabase = async () => {
+    console.log("ProjectHeader: exportDiagram called", editorInstance);
     if (!editorInstance?.current) {
       alert("Editor not ready");
       return;
     }
-    const model = editorInstance.current.model;
-    if (!model) {
-      alert("Model is empty or undefined");
+    const { classes, relationships } = editorInstance.current;
+    console.log("ProjectHeader: exportDiagram model", { classes, relationships });
+    if (!Array.isArray(classes) || !Array.isArray(relationships)) {
+      alert("No model to export.");
+      return;
+    }
+    const data = { classes, relationships };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "uml_project.json";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+    a.remove();
+  };
+
+  // Import JSON into canvas model (same as yaqeen.jsx)
+  const importDiagram = (event) => {
+    console.log("ProjectHeader: importDiagram called", editorInstance);
+    if (!editorInstance?.current) {
+      alert("Editor not ready");
+      return;
+    }
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (Array.isArray(data.classes) && Array.isArray(data.relationships)) {
+          editorInstance.current.setModel(data.classes, data.relationships);
+          alert("Model imported successfully!");
+        } else {
+          alert("Invalid JSON project format.");
+        }
+      } catch (err) {
+        alert("Could not parse JSON: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Save canvas model to DB (update diagram_json)
+  const saveDiagramToDatabase = async () => {
+    console.log("ProjectHeader: saveDiagramToDatabase called", editorInstance);
+    if (!editorInstance?.current) {
+      alert("Editor not ready");
+      return;
+    }
+    const { classes, relationships } = editorInstance.current;
+    console.log("ProjectHeader: saveDiagramToDatabase model", { classes, relationships });
+    if (!Array.isArray(classes) || !Array.isArray(relationships)) {
+      alert("No model to save.");
       return;
     }
     try {
+      // Send as a single string (not object) for diagramJson
       const res = await fetch(
         `http://localhost:9000/api/projects/updateDiagram?projectId=${projectId}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(model), // send as single-line JSON string
+          body: JSON.stringify(JSON.stringify({ classes, relationships })),
         }
       );
       if (res.ok) {
@@ -122,7 +125,7 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
         >
           <MdInsertDriveFile size={28} color="#fff" />
         </div>
-        {/* File dropdown */}
+        {/* File dropdown (keep for New/Open) */}
         <div className={styles.dropdown}>
           <button className={styles.menuButton}>
             <MdInsertDriveFile style={{ marginRight: 4 }} /> File
@@ -134,9 +137,6 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
             </button>
             <button className={styles.dropdownItem}>
               <MdFolderOpen /> Open
-            </button>
-            <button className={styles.dropdownItem} onClick={exportDiagram}>
-              <MdSaveAlt /> Save as JSON
             </button>
           </div>
         </div>
@@ -154,39 +154,39 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
             </button>
           </div>
         </div>
-        {/* Import dropdown */}
-        <div className={styles.dropdown}>
-          {/*<button className={styles.menuButton}>*/}
-          {/*  <MdFileUpload style={{ marginRight: 4 }} /> Import*/}
-          {/*  <MdExpandMore style={{ fontSize: "1.1em", marginLeft: 6 }} />*/}
-          {/*</button>*/}
-          {/*<div className={styles.dropdownContent}>*/}
-          {/*  <button*/}
-          {/*    className={styles.dropdownItem}*/}
-          {/*    onClick={() => fileInputRef.current.click()}*/}
-          {/*  >*/}
-          {/*    JSON*/}
-          {/*  </button>*/}
-          {/*  <input*/}
-          {/*    type="file"*/}
-          {/*    accept=".json"*/}
-          {/*    ref={fileInputRef}*/}
-          {/*    style={{ display: "none" }}*/}
-          {/*    onChange={importDiagram}*/}
-          {/*  />*/}
-          {/*</div>*/}
-        </div>
-        {/* Export button */}
-        {/*<button className={styles.menuButton} onClick={exportDiagram}>*/}
-        {/*  <MdFileDownload style={{ marginRight: 4 }} /> Export*/}
-        {/*</button>*/}
         {/* Help button */}
         <button className={styles.menuButton}>
           <MdHelpOutline style={{ marginRight: 4 }} /> Help
         </button>
       </div>
       <div className={styles.rightSection}>
-        <button className={styles.blueBtn} onClick={saveDiagramToDatabase}>
+        <button
+          className={styles.blueBtn}
+          onClick={exportDiagram}
+          title="Export diagram as JSON"
+        >
+          <MdSaveAlt style={{ marginRight: 4 }} /> Export JSON
+        </button>
+        <button
+          className={styles.blueBtn}
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          title="Import diagram from JSON"
+        >
+          <MdFileUpload style={{ marginRight: 4 }} /> Import JSON
+        </button>
+        <input
+          type="file"
+          accept=".json"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={importDiagram}
+        />
+        {/* --- Save button --- */}
+        <button
+          className={styles.blueBtn}
+          onClick={saveDiagramToDatabase}
+          title="Save diagram to database"
+        >
           <MdSaveAlt style={{ marginRight: 4 }} /> Save
         </button>
         {/* Share button */}

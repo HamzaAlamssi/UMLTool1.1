@@ -16,7 +16,7 @@ public class AuthenticationSuccessHandler extends SavedRequestAwareAuthenticatio
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws ServletException, IOException {
-        boolean isDoctor = authentication.getAuthorities().stream()
+        boolean isDesigner = authentication.getAuthorities().stream()
                 .anyMatch(grantedAuthority -> UserRoles.USER
                         .equals(UserRoles.getEnumByValue(grantedAuthority.getAuthority())));
         boolean isAdmin = authentication.getAuthorities().stream()
@@ -24,9 +24,9 @@ public class AuthenticationSuccessHandler extends SavedRequestAwareAuthenticatio
                         .equals(UserRoles.getEnumByValue(grantedAuthority.getAuthority())));
         if (isAdmin) {
             setDefaultTargetUrl("/admins/dashboard");
-        } else if (isDoctor) {
-            log.error("doctors/dashboard");
-            setDefaultTargetUrl("/doctors/dashboard");
+        } else if (isDesigner) {
+            log.error("designers/dashboard");
+            setDefaultTargetUrl("/designers/dashboard");
         }
 
         else
