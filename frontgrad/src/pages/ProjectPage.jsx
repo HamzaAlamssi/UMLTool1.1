@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect } from "react";
-import ApollonEditor from "../components/ApollonEditor";
 import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
@@ -36,7 +35,7 @@ function ProjectPage() {
             if (typeof parsed === "string") parsed = JSON.parse(parsed);
             if (typeof parsed === "string") parsed = JSON.parse(parsed);
           } catch (e) {
-            parsed = null;
+            parsed = e;
           }
           setInitialModel(parsed);
           if (parsed && typeof parsed === "object") {
@@ -49,26 +48,15 @@ function ProjectPage() {
       });
   }, [projectId]);
 
-  // Fetch current user info
-  useEffect(() => {
-    fetch("http://localhost:9000/auth/me", { credentials: "include" })
+
+    useEffect(() => {
+    fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         console.log("Fetched currentUser:", data);
         setCurrentUser(data);
       });
   }, []);
-
-  const handleOpenCollaborators = () => {
-    setShareOpen(false);
-    setCollabOpen(true);
-  };
-
-  const handleOpenShare = () => {
-    setCollabOpen(false);
-    setShareOpen(true);
-  };
-
   return (
     <>
       <Header
@@ -88,7 +76,11 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <UmlEditor ref={editorRef} />
+      <UmlEditor
+      ref={editorRef}
+      projectId={projectId}
+      initialModel={initialModel}
+      />
       {chatOpen && (
         <ChatSidebar
           onClose={() => setChatOpen(false)}

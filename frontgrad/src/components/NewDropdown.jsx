@@ -42,7 +42,7 @@ function NewDropdown({ onCreateFromTemplate, onWhiteboard, onImport }) {
     setError("");
     try {
       // Fetch current user info from backend
-      const userRes = await fetch("http://localhost:9000/auth/me", {
+      const userRes = await fetch("http://localhost:9000/auth/aUser", {
         method: "GET",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

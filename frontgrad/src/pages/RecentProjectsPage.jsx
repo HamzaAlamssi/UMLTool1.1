@@ -13,7 +13,7 @@ function RecentProjectsPage() {
 
   useEffect(() => {
     // Fetch current user info from backend
-    fetch("http://localhost:9000/auth/me", {
+    fetch("http://localhost:9000/auth/aUser", {
       method: "GET",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
