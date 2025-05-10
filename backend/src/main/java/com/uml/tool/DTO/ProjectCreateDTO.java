@@ -6,5 +6,5 @@ import lombok.Data;
 public class ProjectCreateDTO {
     private String name;
     private String diagramType;
-    private String ownerUsername;
+    private String ownerEmail;
 }

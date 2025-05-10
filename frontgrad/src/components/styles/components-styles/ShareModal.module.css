@@ -194,3 +194,39 @@
 .avatarB {
   background: #adb5bd;
 }
+
+.collaboratorList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.collaboratorChip {
+  background: #e0fdfa;
+  color: #22645c;
+  border-radius: 1rem;
+  padding: 0.2rem 0.8rem 0.2rem 0.7rem;
+  font-size: 0.97rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid #b2dfdb;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  font-size: 1.1rem;
+  margin-left: 0.3rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+.removeBtn:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+}

@@ -30,7 +30,7 @@ const NewProfilePage = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:9000/auth/me", {
+    fetch("http://localhost:9000/auth/aUser", {
       credentials: "include",
     })
       .then((res) =>

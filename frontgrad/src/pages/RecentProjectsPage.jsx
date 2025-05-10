@@ -12,15 +12,24 @@ function RecentProjectsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const username = localStorage.getItem("username") || "mo";
-    fetch(
-      `http://localhost:9000/api/projects/own?username=${encodeURIComponent(
-        username
-      )}`,
-      {
-        credentials: "include",
-      }
-    )
+    // Fetch current user info from backend
+    fetch("http://localhost:9000/auth/aUser", {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error("Not authenticated"))
+      )
+      .then((userData) => {
+        const email = userData.username;
+        return fetch(
+          `http://localhost:9000/api/projects/own?email=${encodeURIComponent(
+            email
+          )}`,
+          { credentials: "include" }
+        );
+      })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch projects");
         return res.json();

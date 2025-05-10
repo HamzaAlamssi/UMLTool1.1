@@ -44,7 +44,7 @@ function LoginPage() {
         <img src="/image/frontIcon.png" alt="Illustration" />
       </div>
       <div className={styles.formSection}>
-        <h2>Diagram Softwaree</h2>
+        <h2>Diagram Software</h2>
         <p>Your all in one solution for crafting stunning diagrams online!</p>
 
         <form onSubmit={handleSubmit}>
