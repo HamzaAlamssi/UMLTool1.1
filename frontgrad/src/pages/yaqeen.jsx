@@ -1,10 +1,10 @@
-// === Import/Export logic ===
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 // === CSS-in-JS styles ===
-const styless = `body {
+const styless = `
+body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(120deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(120deg, #e0fdfa 0%, #d1fae5 100%);
     margin: 0;
     min-height: 100vh;
 }
@@ -20,32 +20,32 @@ const styless = `body {
 #uml-canvas {
     border-radius: 18px;
     left: 10px;
-    border: 2px solid #4668D9;
-    background: #f7f9fc;
+    border: 2px solid #2dd4bf;
+    background: #f7fdfc;
     margin: 0 auto;
     display: inline-block;
-    box-shadow: 0 8px 32px #4668D921;
+    box-shadow: 0 8px 32px #2dd4bf21;
 }
 #toolbar {
     position: fixed;
     top: 70px;
-    left: 5px; /* Hide off-screen by default */
-    transition: left 1s cubic-bezier(.4,1.6,.4,1); /* Smooth slide */
-    width: 150px;
+    left: 5px;
+    transition: left 1s cubic-bezier(.4,1.6,.4,1);
+    width: 170px;
     padding: 26px 16px 22px 16px;
-    background: #f8fafc ;
+    background: #e0fdfa;
     border-radius: 22px;
-    box-shadow: 0 6px 24px #3347b025, 0 1.5px 8px #4668D92A;
+    box-shadow: 0 6px 24px #2dd4bf25, 0 1.5px 8px #2dd4bf2A;
     display: flex;
     flex-direction: column;
     gap: 22px;
     z-index: 10;
-    border: 1.5px solid #d4defc;
+    border: 1.5px solid #2dd4bf;
     max-height: 90vh;
     overflow-y: auto;
 }
 #toolbar.toolbar-visible {
-    left: 10px; /* Slide in to visible position */
+    left: 10px;
 }
 #toolbar-hotspot {
     position: fixed;
@@ -64,7 +64,7 @@ const styless = `body {
 }
 .toolbar-label {
     font-size: 13px;
-    color: #000;
+    color: #065f46;
     font-weight: bold;
     letter-spacing: 0.02em;
     margin-bottom: 4px;
@@ -73,7 +73,7 @@ const styless = `body {
 }
 .toolbar-btn {
     font-size: 15px;
-    background: linear-gradient(90deg, #348983 70%, #5eead4 100%);
+    background: linear-gradient(90deg, #34d399 70%, #2dd4bf 100%);
     color: #fff;
     border: none;
     border-radius: 7px;
@@ -82,16 +82,16 @@ const styless = `body {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, box-shadow 0.15s;
-    box-shadow: 0 1.5px 5px #4668d911;
+    box-shadow: 0 1.5px 5px #2dd4bf11;
     outline: none;
 }
 .toolbar-btn:active, .toolbar-btn:focus {
-    background: #c9dafb;
-    color: #23336b;
+    background: #bbf7d0;
+    color: #065f46;
 }
 .toolbar-btn:hover {
-    background: #d2e3fa;
-    color: green;
+    background: #99f6e4;
+    color: #047857;
 }
 .export-group {
     display: flex;
@@ -105,14 +105,14 @@ const styless = `body {
     z-index: 1000;
     left: 0; top: 0;
     width: 100vw; height: 100vh;
-    background: rgba(28,38,68,0.13);
+    background: rgba(16,185,129,0.13);
 }
 #uml-modal-content {
     background: #fff;
     margin: 12% auto;
     padding: 24px 32px 22px 32px;
     border-radius: 12px;
-    box-shadow: 0 8px 32px #4668D933;
+    box-shadow: 0 8px 32px #2dd4bf33;
     width: 340px;
     display: flex;
     flex-direction: column;
@@ -124,8 +124,8 @@ const styless = `body {
     padding: 7px 8px;
     margin-bottom: 8px;
     border-radius: 6px;
-    border: 1.5px solid #d4defc;
-    background: #eef2fd;
+    border: 1.5px solid #99f6e4;
+    background: #e0fdfa;
 }
 #uml-modal button {
     margin-right: 9px;
@@ -134,7 +134,7 @@ const styless = `body {
     border-radius: 7px;
     font-size: 15px;
     cursor: pointer;
-    background: #4668D9;
+    background: #2dd4bf;
     color: #fff;
     font-weight: 500;
 }
@@ -151,15 +151,17 @@ const styless = `body {
     font-size: 15px;
     padding: 2px 4px;
     border-radius: 6px;
-    border: 1.2px solid #d4defc;
+    border: 1.2px solid #99f6e4;
     margin-top: 5px;
+    background: #e0fdfa;
+    color: #047857;
 }
 .toolbar-tip {
     font-size: 12px;
-    color: #6c7ac9;
+    color: #047857;
     border-radius: 6px;
     padding: 5px 8px 3px 8px;
-    background: #f5f8ff;
+    background: #d1fae5;
     margin-top: 7px;
     text-align: center;
 }
@@ -167,15 +169,16 @@ const styless = `body {
     width: 100%;
     padding: 6px 8px;
     border-radius: 6px;
-    border: 1.5px solid #d4defc;
-    background: #eef2fd;
+    border: 1.5px solid #99f6e4;
+    background: #e0fdfa;
     font-size: 14px;
-    color: #3347b0;
+    color: #047857;
 }
-
 .visibility-select option {
     padding: 4px;
-}`;
+}
+`;
+
 const styles = {
     container: {
         display: 'flex', // Add flex display
@@ -250,7 +253,8 @@ const styles = {
     },
 };
 
-function UmlEditor() {
+const UmlEditor = forwardRef(({ initialModel }, ref) => {
+    const editorInstance = useRef();
     // === State ===
     const canvasRef = useRef(null);
     const [classes, setClasses] = useState([]);
@@ -268,6 +272,38 @@ function UmlEditor() {
     const [resizeTarget, setResizeTarget] = useState(null);
     const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
     const resizeHandleSize = 14;
+
+    // Log model changes
+    useEffect(() => {
+        console.log("UmlEditor: classes changed", classes);
+        console.log("UmlEditor: relationships changed", relationships);
+    }, [classes, relationships]);
+
+    // Log when ref is set
+    useImperativeHandle(ref, () => {
+        console.log("UmlEditor: useImperativeHandle set", { classes, relationships });
+        return {
+            get classes() {
+                return classes;
+            },
+            get relationships() {
+                return relationships;
+            },
+            setModel(newClasses, newRelationships) {
+                setClasses(Array.isArray(newClasses) ? newClasses : []);
+                setRelationships(Array.isArray(newRelationships) ? newRelationships : []);
+            }
+        };
+    }, [classes, relationships]);
+
+    // When initialModel changes, set the model in the editor
+    useEffect(() => {
+        if (initialModel) {
+            setClasses(initialModel.classes || []);
+            setRelationships(initialModel.relationships || []);
+            console.log("UmlEditor: initialModel applied", initialModel);
+        }
+    }, [initialModel]);
 
     function handleCanvasMouseDown(e) {
         if (relationMode) return; // Don't drag in relation mode
@@ -1781,47 +1817,47 @@ function UmlEditor() {
 
     const fileInputRef = useRef();
 
-    function handleSaveJson() {
-        const data = { classes, relationships };
-        const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "uml_project.json";
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(()=>URL.revokeObjectURL(url), 500);
-        a.remove();
-    }
+    // function handleSaveJson() {
+    //     const data = { classes, relationships };
+    //     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = "uml_project.json";
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     setTimeout(()=>URL.revokeObjectURL(url), 500);
+    //     a.remove();
+    // }
 
-    function handleLoadJson(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (Array.isArray(data.classes) && Array.isArray(data.relationships)) {
-                    setClasses(data.classes);
-                    setRelationships(data.relationships);
-                } else {
-                    alert("Invalid JSON project format.");
-                }
-            } catch (err) {
-                alert("Could not parse JSON: " + err.message);
-            }
-        };
-        reader.readAsText(file);
-    }
+    // function handleLoadJson(e) {
+    //     const file = e.target.files[0];
+    //     if (!file) return;
+    //     const reader = new FileReader();
+    //     reader.onload = function(ev) {
+    //         try {
+    //             const data = JSON.parse(ev.target.result);
+    //             if (Array.isArray(data.classes) && Array.isArray(data.relationships)) {
+    //                 setClasses(data.classes);
+    //                 setRelationships(data.relationships);
+    //             } else {
+    //                 alert("Invalid JSON project format.");
+    //             }
+    //         } catch (err) {
+    //             alert("Could not parse JSON: " + err.message);
+    //         }
+    //     };
+    //     reader.readAsText(file);
+    // }
 
-    function handleSavePng() {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const link = document.createElement('a');
-        link.download = 'uml-diagram.png';
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    }
+    // function handleSavePng() {
+    //     const canvas = canvasRef.current;
+    //     if (!canvas) return;
+    //     const link = document.createElement('a');
+    //     link.download = 'uml-diagram.png';
+    //     link.href = canvas.toDataURL("image/png");
+    //     link.click();
+    // }
 
     // Relationship mode toggle handler
     function handleRelationModeToggle(e) {
@@ -1899,12 +1935,12 @@ function UmlEditor() {
                     </select>
                     </div>
                     <div className="toolbar-group export-group">
-                        <span className="toolbar-label">Export/Import</span>
+                        {/* <span className="toolbar-label">Export/Import</span>
                         <button className="toolbar-btn" onClick={handleSavePng}>Save PNG</button>
                         <button className="toolbar-btn" onClick={handleSaveJson}>Save JSON</button>
                         <label style={{fontSize: 14, color: '#3347b0', margin: '4px 0 0 0'}}>Import JSON:
                             <input type="file" ref={fileInputRef} accept=".json" onChange={handleLoadJson} style={{marginLeft: 6, fontSize: 13, borderRadius: 6, border: '1.2px solid #d4defc', background: '#eef2fd', padding: '2px 4px'}} />
-                        </label>
+                        </label> */}
                         <button className="toolbar-btn" style={{ background: '#f06d6d' }} onClick={() => {
                             if (window.confirm('Are you sure you want to clear the canvas? This cannot be undone.')) {
                                 // === Import/Export logic ===
@@ -1988,8 +2024,6 @@ function UmlEditor() {
             </div>
         </>
     );
-}
+});
 
 export default UmlEditor;
-
-// === Import/Export logic ===

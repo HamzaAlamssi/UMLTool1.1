@@ -13,17 +13,40 @@ function ProjectPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
   const [project, setProject] = useState(null);
+  const [initialModel, setInitialModel] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const { id: projectId } = useParams();
 
-  // Fetch project by ID from URL
   useEffect(() => {
     if (!projectId) return;
     fetch(`http://localhost:9000/api/projects/${projectId}`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setProject(data));
+      .then((data) => {
+        setProject(data);
+        if (data) {
+          console.info(`[ProjectPage] Loaded project: id=${data.id}, name=${data.name}`);
+        }
+        // Accept both camelCase and snake_case for diagramJson
+        const diagramJsonRaw = data?.diagramJson ?? data?.diagram_json;
+        if (diagramJsonRaw) {
+          let parsed = diagramJsonRaw;
+          try {
+            if (typeof parsed === "string") parsed = JSON.parse(parsed);
+            if (typeof parsed === "string") parsed = JSON.parse(parsed);
+          } catch (e) {
+            parsed = null;
+          }
+          setInitialModel(parsed);
+          if (parsed && typeof parsed === "object") {
+            console.info(`[ProjectPage] Set initialModel: classes=${Array.isArray(parsed.classes) ? parsed.classes.length : 0}, relationships=${Array.isArray(parsed.relationships) ? parsed.relationships.length : 0}`);
+          }
+        } else {
+          setInitialModel(null);
+          console.info("[ProjectPage] No diagram_json found, initialModel set to null");
+        }
+      });
   }, [projectId]);
 
   // Fetch current user info
@@ -76,13 +99,19 @@ function ProjectPage() {
       <ShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
-        onManageCollaborators={handleOpenCollaborators}
+        onManageCollaborators={() => {
+          setShareOpen(false);
+          setCollabOpen(true);
+        }}
         projectId={projectId}
       />
       <CollaboratorsModal
         open={collabOpen}
         onClose={() => setCollabOpen(false)}
-        onAdd={handleOpenShare}
+        onAdd={() => {
+          setCollabOpen(false);
+          setShareOpen(true);
+        }}
       />
     </>
   );
