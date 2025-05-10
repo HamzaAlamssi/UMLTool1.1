@@ -7,7 +7,51 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
+
 .projectCard:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.projectTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #22645c;
+  margin: 0;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #d32f2f;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: 0.4rem;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteBtn:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+}
+
+.projectInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.98rem;
+  color: #444;
 }

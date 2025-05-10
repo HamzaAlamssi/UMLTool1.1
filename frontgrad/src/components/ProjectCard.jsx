@@ -1,37 +1,32 @@
 import React from "react";
 import styles from "./styles/components-styles/ProjectCard.module.css";
+import { FiTrash2 } from "react-icons/fi";
 
 function ProjectCard({ project, onClick, onDelete }) {
   return (
     <div className={styles.projectCard} onClick={() => onClick(project.id)}>
-      <button
-        className={styles.deleteBtn}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (window.confirm("Are you sure you want to delete this project?")) {
-            onDelete && onDelete(project.id);
-          }
-        }}
-        style={{
-          position: "absolute",
-          top: 8,
-          right: 12,
-          background: "none",
-          border: "none",
-          color: "#d32f2f",
-          fontWeight: "bold",
-          fontSize: "1.2rem",
-          cursor: "pointer",
-          zIndex: 2,
-        }}
-        title="Delete project"
-      >
-        ×
-      </button>
-      <h3>{project.name}</h3>
-      <div>Type: {project.diagramType}</div>
-      <div>Owner: {project.ownerUsername}</div>
-      <div>Created: {project.createdAt?.slice(0, 10)}</div>
+      <div className={styles.cardHeader}>
+        <h3 className={styles.projectTitle}>{project.name}</h3>
+        <button
+          className={styles.deleteBtn}
+          title="Delete project"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (
+              window.confirm("Are you sure you want to delete this project?")
+            ) {
+              onDelete && onDelete(project.id);
+            }
+          }}
+        >
+          <FiTrash2 size={20} />
+        </button>
+      </div>
+      <div className={styles.projectInfo}>
+        <div>Type: {project.diagramType}</div>
+        <div>Owner: {project.ownerUsername}</div>
+        <div>Created: {project.createdAt?.slice(0, 10)}</div>
+      </div>
     </div>
   );
 }

@@ -12,6 +12,10 @@ import lombok.experimental.SuperBuilder;
 public abstract class User {
     public User(){}
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "email", unique = true)
     String email;
 
     @Column(name = "name")

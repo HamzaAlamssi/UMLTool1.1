@@ -21,4 +21,11 @@ public class GroupMember {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserLoginDetails user;
+
+    @Enumerated(EnumType.STRING)
+    private Permission permission;
+
+    public enum Permission {
+        EDIT, VIEW, READONLY
+    }
 }

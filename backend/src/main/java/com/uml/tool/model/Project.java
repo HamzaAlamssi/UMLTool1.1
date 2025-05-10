@@ -2,6 +2,7 @@ package com.uml.tool.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,6 +30,8 @@ public class Project {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    private List<Group> groups;
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ToString.Exclude
+    private Group group;
 }
