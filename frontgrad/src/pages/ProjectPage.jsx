@@ -14,6 +14,7 @@ function ProjectPage() {
   const [collabOpen, setCollabOpen] = useState(false);
   const [project, setProject] = useState(null);
   const [initialModel, setInitialModel] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const { id: projectId } = useParams();
 
   useEffect(() => {
@@ -48,6 +49,26 @@ function ProjectPage() {
       });
   }, [projectId]);
 
+  // Fetch current user info
+  useEffect(() => {
+    fetch("http://localhost:9000/auth/me", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        console.log("Fetched currentUser:", data);
+        setCurrentUser(data);
+      });
+  }, []);
+
+  const handleOpenCollaborators = () => {
+    setShareOpen(false);
+    setCollabOpen(true);
+  };
+
+  const handleOpenShare = () => {
+    setCollabOpen(false);
+    setShareOpen(true);
+  };
+
   return (
     <>
       <Header
@@ -67,8 +88,14 @@ function ProjectPage() {
           <div>Loading project...</div>
         )}
       </div>
-      <UmlEditor ref={editorRef} initialModel={initialModel} />
-      {chatOpen && <ChatSidebar onClose={() => setChatOpen(false)} />}
+      <UmlEditor ref={editorRef} />
+      {chatOpen && (
+        <ChatSidebar
+          onClose={() => setChatOpen(false)}
+          projectId={projectId}
+          currentUser={currentUser}
+        />
+      )}
       <ShareModal
         open={shareOpen}
         onClose={() => setShareOpen(false)}
