@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaUsers, FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/ViewUsersPage.module.css";
 
@@ -8,6 +9,7 @@ const ViewUsersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const fetchUsers = async (query = "") => {
     setLoading(true);
@@ -117,7 +119,12 @@ const ViewUsersPage = () => {
             ) : (
               <div className={styles.usersGrid}>
                 {users.map((user) => (
-                  <div className={styles.userCard} key={user.email}>
+                  <div
+                    className={styles.userCard}
+                    key={user.email}
+                    onClick={() => navigate(`/ManageUserProfile?email=${encodeURIComponent(user.email)}`)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className={styles.userAvatar}>
                       {user.profileImage ? (
                         <img src={user.profileImage} alt={user.username} />
