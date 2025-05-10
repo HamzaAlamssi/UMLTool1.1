@@ -181,7 +181,6 @@ body {
     background: #d1fae5;
     margin-top: 7px;
     text-align: center;
-}`;
 }
 .visibility-select {
     width: 100%;
@@ -295,6 +294,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
   // === WebSocket setup ===
   useEffect(() => {
     if (!projectId) return;
+    // eslint-disable-next-line no-constant-binary-expression
     const socket = new SockJS('http://localhost:9000/ws' || 'http://localhost:5000/ws');
     const client = new Client({
       webSocketFactory: () => socket,
@@ -693,7 +693,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     ctx.textBaseline = "alphabetic";
     // Attributes
     let attrY = cls.y + 44;
-    cls.attributes.forEach((attr, idx) => {
+    cls.attributes.forEach((attr) => {
       const visibilitySymbol = {
         public: '+', private: '-', protected: '#', package: '~'
       }[attr.visibility] || '+';
@@ -718,7 +718,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     let methodY = methodSectionY;
     ctx.font = "italic 15px Segoe UI";
     ctx.fillStyle = "#3d3d3d";
-    cls.methods.forEach((method, idx) => {
+    cls.methods.forEach((method) => {
       const visibilitySymbol = {
         public: '+', private: '-', protected: '#', package: '~'
       }[method.visibility] || '+';
@@ -2379,7 +2379,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     setPendingRelation(prev => ({ ...prev, type: e.target.value }));
   }
 
-  const [generatedCode, setGeneratedCode] = useState('');
+  const [, setGeneratedCode] = useState('');
 
   function generateJavaCode(classes, relationships) {
     const visibilityMap = {
