@@ -1,11 +1,13 @@
-import React, { useRef, useState, useEffect,useImperativeHandle, forwardRef } from 'react';
+
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
 // === CSS-in-JS styles ===
-const styless = `body {
+const styless = `
+body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(120deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(120deg, #e0fdfa 0%, #d1fae5 100%);
     margin: 0;
     min-height: 100vh;
 }
@@ -21,32 +23,32 @@ const styless = `body {
 #uml-canvas {
     border-radius: 18px;
     left: 10px;
-    border: 2px solid #4668D9;
-    background: #f7f9fc;
+    border: 2px solid #2dd4bf;
+    background: #f7fdfc;
     margin: 0 auto;
     display: inline-block;
-    box-shadow: 0 8px 32px #4668D921;
+    box-shadow: 0 8px 32px #2dd4bf21;
 }
 #toolbar {
     position: fixed;
     top: 70px;
-    left: 5px; /* Hide off-screen by default */
-    transition: left 1s cubic-bezier(.4,1.6,.4,1); /* Smooth slide */
-    width: 150px;
+    left: 5px;
+    transition: left 1s cubic-bezier(.4,1.6,.4,1);
+    width: 170px;
     padding: 26px 16px 22px 16px;
-    background: #f8fafc ;
+    background: #e0fdfa;
     border-radius: 22px;
-    box-shadow: 0 6px 24px #3347b025, 0 1.5px 8px #4668D92A;
+    box-shadow: 0 6px 24px #2dd4bf25, 0 1.5px 8px #2dd4bf2A;
     display: flex;
     flex-direction: column;
     gap: 22px;
     z-index: 10;
-    border: 1.5px solid #d4defc;
+    border: 1.5px solid #2dd4bf;
     max-height: 90vh;
     overflow-y: auto;
 }
 #toolbar.toolbar-visible {
-    left: 10px; /* Slide in to visible position */
+    left: 10px;
 }
 #toolbar-hotspot {
     position: fixed;
@@ -65,7 +67,7 @@ const styless = `body {
 }
 .toolbar-label {
     font-size: 13px;
-    color: #000;
+    color: #065f46;
     font-weight: bold;
     letter-spacing: 0.02em;
     margin-bottom: 4px;
@@ -88,7 +90,7 @@ const styless = `body {
 }
 .toolbar-btn {
     font-size: 15px;
-    background: linear-gradient(90deg, #348983 70%, #5eead4 100%);
+    background: linear-gradient(90deg, #34d399 70%, #2dd4bf 100%);
     color: #fff;
     border: none;
     border-radius: 7px;
@@ -97,16 +99,16 @@ const styless = `body {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, box-shadow 0.15s;
-    box-shadow: 0 1.5px 5px #4668d911;
+    box-shadow: 0 1.5px 5px #2dd4bf11;
     outline: none;
 }
 .toolbar-btn:active, .toolbar-btn:focus {
-    background: #c9dafb;
-    color: #23336b;
+    background: #bbf7d0;
+    color: #065f46;
 }
 .toolbar-btn:hover {
-    background: #d2e3fa;
-    color: green;
+    background: #99f6e4;
+    color: #047857;
 }
 .export-group {
     display: flex;
@@ -120,14 +122,14 @@ const styless = `body {
     z-index: 1000;
     left: 0; top: 0;
     width: 100vw; height: 100vh;
-    background: rgba(28,38,68,0.13);
+    background: rgba(16,185,129,0.13);
 }
 #uml-modal-content {
     background: #fff;
     margin: 12% auto;
     padding: 24px 32px 22px 32px;
     border-radius: 12px;
-    box-shadow: 0 8px 32px #4668D933;
+    box-shadow: 0 8px 32px #2dd4bf33;
     width: 340px;
     display: flex;
     flex-direction: column;
@@ -139,8 +141,8 @@ const styless = `body {
     padding: 7px 8px;
     margin-bottom: 8px;
     border-radius: 6px;
-    border: 1.5px solid #d4defc;
-    background: #eef2fd;
+    border: 1.5px solid #99f6e4;
+    background: #e0fdfa;
 }
 #uml-modal button {
     margin-right: 9px;
@@ -149,7 +151,7 @@ const styless = `body {
     border-radius: 7px;
     font-size: 15px;
     cursor: pointer;
-    background: #4668D9;
+    background: #2dd4bf;
     color: #fff;
     font-weight: 500;
 }
@@ -166,18 +168,34 @@ const styless = `body {
     font-size: 15px;
     padding: 2px 4px;
     border-radius: 6px;
-    border: 1.2px solid #d4defc;
+    border: 1.2px solid #99f6e4;
     margin-top: 5px;
+    background: #e0fdfa;
+    color: #047857;
 }
 .toolbar-tip {
     font-size: 12px;
-    color: #6c7ac9;
+    color: #047857;
     border-radius: 6px;
     padding: 5px 8px 3px 8px;
-    background: #f5f8ff;
+    background: #d1fae5;
     margin-top: 7px;
     text-align: center;
 }`;
+}
+.visibility-select {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1.5px solid #99f6e4;
+    background: #e0fdfa;
+    font-size: 14px;
+    color: #047857;
+}
+.visibility-select option {
+    padding: 4px;
+}
+`;
 const styles = {
   container: {
     display: 'flex', // Add flex display
@@ -2370,7 +2388,6 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       'protected': 'protected',
       'package': '/* package */'
     };
-  
     const parseAttribute = (attrName) => {
       const [name, type] = attrName.split(':').map(s => s.trim());
       return {
@@ -2380,22 +2397,19 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     };
   
     const parseMethod = (methodName) => {
-      // Split into parts while handling return type
       const parts = methodName.split(':').map(s => s.trim());
       let returnType = 'void';
       let signature = methodName;
-    
+  
       if (parts.length > 1) {
         returnType = parts.pop();
         signature = parts.join(':').trim();
       }
-    
-      // Ensure signature has parentheses
+  
       if (!signature.includes('(') || !signature.endsWith(')')) {
         signature = `${signature.replace(/\)?$/, '')}()`;
       }
-    
-      // Extract method name and parameters
+  
       const [namePart, paramsPart] = signature.split(/\((.*)\)/s);
       const params = paramsPart 
         ? paramsPart.split(',')
@@ -2406,9 +2420,8 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
                 type: pType || 'Object'
               };
             })
-            .filter(p => p.name) // Remove empty parameters
+            .filter(p => p.name)
         : [];
-    
       return {
         name: namePart.trim(),
         params,
@@ -2417,8 +2430,12 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     };
   
     let code = '';
+    const processedClasses = new Set();
   
     classes.forEach(cls => {
+      if (processedClasses.has(cls.id)) return;
+      processedClasses.add(cls.id);
+  
       // Class declaration
       code += `public class ${cls.name} `;
       
@@ -2564,7 +2581,6 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
                 }
               }}>Clear Canvas</button>
             </div>
-
           </div>
 
           {/* Java Code Generation Modal */}

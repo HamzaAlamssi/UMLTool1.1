@@ -143,9 +143,9 @@
 }
 
 .checkmark {
-  display: inline-block;
+ /* display: inline-block;
   width: 20px;
-  height: 20px;
+  height: 20px;*/
   background: #eef7f6;
   border-radius: 0.4rem;
 }

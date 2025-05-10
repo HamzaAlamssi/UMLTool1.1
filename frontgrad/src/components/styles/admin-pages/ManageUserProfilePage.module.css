@@ -227,3 +227,25 @@
   background: transparent;
   font-size: 1.1rem;
 }
+
+.selectInput {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 0.5rem 7.5rem 0.5rem 0.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid #e0e0e0;
+  font-size: 0.95rem;
+  height: 3rem;
+  min-height: 3rem;
+  position: relative;
+  width: 600px;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  font-weight: 600;
+  color: #797979;
+}
