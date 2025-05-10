@@ -2370,7 +2370,6 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       'protected': 'protected',
       'package': '/* package */'
     };
-  
     const parseAttribute = (attrName) => {
       const [name, type] = attrName.split(':').map(s => s.trim());
       return {
@@ -2380,22 +2379,19 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     };
   
     const parseMethod = (methodName) => {
-      // Split into parts while handling return type
       const parts = methodName.split(':').map(s => s.trim());
       let returnType = 'void';
       let signature = methodName;
-    
+  
       if (parts.length > 1) {
         returnType = parts.pop();
         signature = parts.join(':').trim();
       }
-    
-      // Ensure signature has parentheses
+  
       if (!signature.includes('(') || !signature.endsWith(')')) {
         signature = `${signature.replace(/\)?$/, '')}()`;
       }
-    
-      // Extract method name and parameters
+  
       const [namePart, paramsPart] = signature.split(/\((.*)\)/s);
       const params = paramsPart 
         ? paramsPart.split(',')
@@ -2406,9 +2402,8 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
                 type: pType || 'Object'
               };
             })
-            .filter(p => p.name) // Remove empty parameters
+            .filter(p => p.name)
         : [];
-    
       return {
         name: namePart.trim(),
         params,
@@ -2417,8 +2412,12 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     };
   
     let code = '';
+    const processedClasses = new Set();
   
     classes.forEach(cls => {
+      if (processedClasses.has(cls.id)) return;
+      processedClasses.add(cls.id);
+  
       // Class declaration
       code += `public class ${cls.name} `;
       
