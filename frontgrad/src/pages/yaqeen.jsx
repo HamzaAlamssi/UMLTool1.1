@@ -181,7 +181,6 @@ body {
     background: #d1fae5;
     margin-top: 7px;
     text-align: center;
-}`;
 }
 .visibility-select {
     width: 100%;
@@ -194,8 +193,7 @@ body {
 }
 .visibility-select option {
     padding: 4px;
-}
-`;
+}`;
 const styles = {
   container: {
     display: 'flex', // Add flex display

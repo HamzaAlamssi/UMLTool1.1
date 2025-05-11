@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AdminRepository extends JpaRepository<UserLoginDetails, Long> {
+public interface AdminRepository extends JpaRepository<UserLoginDetails, String> {
     @Query("SELECT u FROM UserLoginDetails u WHERE u.role = :role")
     List<UserLoginDetails> findAllByRole(UserRoles role);
 

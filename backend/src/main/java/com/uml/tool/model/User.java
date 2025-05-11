@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 public abstract class User {
     public User(){}
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(name = "email", unique = true)
