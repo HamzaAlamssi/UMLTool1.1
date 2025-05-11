@@ -2,7 +2,8 @@ package com.uml.tool.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Data
@@ -26,5 +27,6 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private LocalDateTime timestamp;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
+    private Instant timestamp;
 }

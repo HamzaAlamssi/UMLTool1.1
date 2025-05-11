@@ -48,15 +48,18 @@ function ProjectPage() {
       });
   }, [projectId]);
 
-
-    useEffect(() => {
+  useEffect(() => {
     fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        console.log("Fetched currentUser:", data);
+        // Ensure currentUser has an email property for ChatSidebar
+        if (data && !data.email && data.username) {
+          data.email = data.username;
+        }
         setCurrentUser(data);
       });
   }, []);
+
   return (
     <>
       <Header
@@ -71,6 +74,13 @@ function ProjectPage() {
               Project: {project.name} (Type: {project.diagramType})
             </h2>
             <div>Owner: {project.owner && project.owner.username}</div>
+            {project.groupName && (
+              <div>
+                <strong>Group:</strong> {project.groupName}
+                <br />
+                <strong>Members:</strong> {project.groupMembers && project.groupMembers.join(", ")}
+              </div>
+            )}
           </div>
         ) : (
           <div>Loading project...</div>
