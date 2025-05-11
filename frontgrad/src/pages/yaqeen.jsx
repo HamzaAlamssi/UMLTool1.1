@@ -1510,13 +1510,13 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       }
       if (mx >= deleteIcon.x && mx <= deleteIcon.x + deleteIcon.w && my >= deleteIcon.y && my <= deleteIcon.y + deleteIcon.h) {
         setClasses(prev => prev.filter(c => c.id !== obj.id));
-        setRelationships(prev => prev.filter(r => r.fromId !== obj.id && r.toId !== obj.id));
-        sendUmlAction({
-          type: 'delete',
-          elementType: 'class',
-          payload: obj,
-          projectId,
-        });
+        setRelationships(prev => prev.filter(r => r.id !== rel.id)); // Filter by ID
+sendUmlAction({
+  type: 'delete',
+  elementType: 'relationship',
+  payload: rel, // Ensure rel includes id
+  projectId,
+});
         return;
       }
     }
@@ -1574,7 +1574,12 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
             return;
           } else if (!isSelfRelation) {
             // Only prevent self-relationship for non-customlabel types
-            const newRelationship = { fromId: pendingRelation.fromId, toId: obj.id, type: pendingRelation.type };
+            const newRelationship = { 
+              id: generateRelationshipId(), // Add ID
+              fromId: pendingRelation.fromId, 
+              toId: obj.id, 
+              type: pendingRelation.type 
+            };
             setRelationships(prev => [...prev, newRelationship]);
             sendUmlAction({
               type: 'add',
@@ -2144,6 +2149,11 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return "cls" + (classIdCounter++);
   }
+  let relationshipIdCounter = 1;
+function generateRelationshipId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "rel" + (relationshipIdCounter++);
+}
 
   function UmlClass(x, y, name = "ClassName") {
     return {
@@ -2559,8 +2569,6 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
                 <option value="include">Include</option>
                 <option value="extend">Extend</option>
                 <option value="activity">Activity Flow</option>
-                <option value="provided">Provided</option>
-                <option value="required">Required</option>
                 <option value="customlabel">Communication Message </option>
               </select>
             </div>
