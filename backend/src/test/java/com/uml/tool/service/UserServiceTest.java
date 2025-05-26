@@ -95,4 +95,16 @@ class UserServiceTest {
         userService.searchUsers(query);
         verify(userRepository, times(1)).findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
     }
+
+    @Test
+    void testUpdateUserProfile_UserNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(Exception.class, () -> userService.updateUserProfile("email", new UserLoginDetails()));
+    }
+
+    @Test
+    void testChangePassword_UserNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertDoesNotThrow(() -> userService.changePassword("email", "newpass"));
+    }
 }

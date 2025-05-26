@@ -42,12 +42,24 @@ class ProjectServiceTest {
     }
 
     @Test
+    void testCreateProject_OwnerNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> projectService.createProject("name", "owner@example.com"));
+    }
+
+    @Test
     void testGetOwnProjectsByEmail() {
         String email = "test@example.com";
         UserLoginDetails user = new UserLoginDetails();
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         projectService.getOwnProjectsByEmail(email);
         verify(projectRepository, times(1)).findByOwner(user);
+    }
+
+    @Test
+    void testGetOwnProjects_UserNotFound() {
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> projectService.getOwnProjects("username"));
     }
 
     @Test
@@ -83,6 +95,12 @@ class ProjectServiceTest {
     }
 
     @Test
+    void testGetProjectById_NotFound() {
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> projectService.getProjectById(1L));
+    }
+
+    @Test
     void testUpdateDiagram() {
         Long projectId = 1L;
         String diagramJson = "{}";
@@ -91,6 +109,12 @@ class ProjectServiceTest {
         when(projectRepository.save(any())).thenReturn(project);
         Project result = projectService.updateDiagram(projectId, diagramJson);
         assertEquals(project, result);
+    }
+
+    @Test
+    void testUpdateDiagram_ProjectNotFound() {
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> projectService.updateDiagram(1L, "{}"));
     }
 
     @Test

@@ -84,4 +84,10 @@ class AdminServiceTest {
         assertEquals(existing, result);
         verify(userRepository, times(1)).save(existing);
     }
+
+    @Test
+    void testUpdateAdminProfile_AdminNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(Exception.class, () -> adminService.updateAdminProfile("email", new UserLoginDetails()));
+    }
 }

@@ -46,16 +46,21 @@ class GroupServiceTest {
         assertThrows(ResponseStatusException.class, () -> groupService.createGroup(request));
     }
 
-    // @Test
-    // void testCreateGroup_GroupAlreadyExists() {
-    // CreateGroupRequest request = new CreateGroupRequest();
-    // request.setProjectId(1L);
-    // request.setMembers(new ArrayList<>()); // Ensure not null
-    // when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
-    // when(groupRepository.findByProjectId(1L)).thenReturn(new Group());
-    // assertThrows(ResponseStatusException.class, () ->
-    // groupService.createGroup(request));
-    // }
+    @Test
+    void testCreateGroup_GroupAlreadyExists() {
+        CreateGroupRequest request = new CreateGroupRequest();
+        request.setProjectId(1L);
+        request.setMembers(new ArrayList<>()); // Ensure not null
+        Project project = new Project();
+        project.setId(1L); // Set project ID to match request
+        UserLoginDetails owner = new UserLoginDetails();
+        owner.setEmail("owner@example.com");
+        project.setOwner(owner);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(groupRepository.findByProjectId(1L)).thenReturn(new Group());
+        // Should throw because group already exists
+        assertThrows(ResponseStatusException.class, () -> groupService.createGroup(request));
+    }
 
     @Test
     void testCreateGroup_Success() {
@@ -80,6 +85,77 @@ class GroupServiceTest {
         // Do not set members (should be null)
         when(projectRepository.findById(1L)).thenReturn(Optional.of(new Project()));
         when(groupRepository.findByProjectId(1L)).thenReturn(null);
+        assertThrows(ResponseStatusException.class, () -> groupService.createGroup(request));
+    }
+
+    @Test
+    void testCreateGroup_InvalidPermission() {
+        CreateGroupRequest request = new CreateGroupRequest();
+        request.setProjectId(1L);
+        request.setGroupName("Test Group");
+        ArrayList<com.uml.tool.DTO.GroupMemberRequest> members = new ArrayList<>();
+        com.uml.tool.DTO.GroupMemberRequest member = new com.uml.tool.DTO.GroupMemberRequest();
+        member.setEmail("user@example.com");
+        member.setPermission("INVALID");
+        members.add(member);
+        request.setMembers(members);
+        Project project = new Project();
+        UserLoginDetails user = new UserLoginDetails();
+        user.setEmail("user@example.com");
+        project.setOwner(user); // To avoid owner skip
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(groupRepository.findByProjectId(1L)).thenReturn(null);
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        // Should throw due to invalid permission
+        assertThrows(ResponseStatusException.class, () -> groupService.createGroup(request));
+    }
+
+    @Test
+    void testCreateGroup_MemberIsOwner_Skipped() {
+        CreateGroupRequest request = new CreateGroupRequest();
+        request.setProjectId(1L);
+        request.setGroupName("Test Group");
+        ArrayList<com.uml.tool.DTO.GroupMemberRequest> members = new ArrayList<>();
+        com.uml.tool.DTO.GroupMemberRequest member = new com.uml.tool.DTO.GroupMemberRequest();
+        member.setEmail("owner@example.com");
+        member.setPermission("EDIT"); // Use valid permission
+        members.add(member);
+        request.setMembers(members);
+        Project project = new Project();
+        UserLoginDetails owner = new UserLoginDetails();
+        owner.setEmail("owner@example.com");
+        project.setOwner(owner);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(groupRepository.findByProjectId(1L)).thenReturn(null);
+        when(userRepository.findByEmail("owner@example.com")).thenReturn(Optional.of(owner));
+        Group group = new Group();
+        when(groupRepository.save(any(Group.class))).thenReturn(group);
+        // Should succeed, owner is skipped as member
+        Group result = groupService.createGroup(request);
+        assertNotNull(result);
+        verify(groupRepository, times(1)).save(any(Group.class));
+        verify(groupMemberRepository, times(1)).saveAll(any());
+    }
+
+    @Test
+    void testCreateGroup_MemberNotFound() {
+        CreateGroupRequest request = new CreateGroupRequest();
+        request.setProjectId(1L);
+        request.setGroupName("Test Group");
+        ArrayList<com.uml.tool.DTO.GroupMemberRequest> members = new ArrayList<>();
+        com.uml.tool.DTO.GroupMemberRequest member = new com.uml.tool.DTO.GroupMemberRequest();
+        member.setEmail("missing@example.com");
+        member.setPermission("READ");
+        members.add(member);
+        request.setMembers(members);
+        Project project = new Project();
+        UserLoginDetails owner = new UserLoginDetails();
+        owner.setEmail("owner@example.com");
+        project.setOwner(owner);
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+        when(groupRepository.findByProjectId(1L)).thenReturn(null);
+        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+        // Should throw because member not found
         assertThrows(ResponseStatusException.class, () -> groupService.createGroup(request));
     }
 }

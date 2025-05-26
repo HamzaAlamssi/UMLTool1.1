@@ -38,4 +38,10 @@ class TemplateServiceTest {
         Template result = templateService.getTemplateById(id);
         assertEquals(template, result);
     }
+
+    @Test
+    void testGetTemplateById_NotFound() {
+        when(templateRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> templateService.getTemplateById(1L));
+    }
 }

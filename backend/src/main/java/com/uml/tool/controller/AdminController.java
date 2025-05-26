@@ -5,6 +5,7 @@ import com.uml.tool.DTO.UserDTO;
 import com.uml.tool.DTO.UserUpdateDTO;
 import com.uml.tool.model.UserLoginDetails;
 import com.uml.tool.service.AdminService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class AdminController {
     private AdminService adminService;
 
     @PostMapping("/add-admin")
-    public UserDTO addAdmin(@RequestBody UserCreateDTO dto) {
+    public UserDTO addAdmin(@Valid @RequestBody UserCreateDTO dto) {
         UserLoginDetails admin = new UserLoginDetails();
         admin.setEmail(dto.getEmail());
         admin.setUsername(dto.getUsername());
@@ -34,7 +35,7 @@ public class AdminController {
     }
 
     @PostMapping("/add-user")
-    public UserDTO addUser(@RequestBody UserCreateDTO dto) {
+    public UserDTO addUser(@Valid @RequestBody UserCreateDTO dto) {
         UserLoginDetails user = new UserLoginDetails();
         user.setEmail(dto.getEmail());
         user.setUsername(dto.getUsername());
@@ -60,7 +61,7 @@ public class AdminController {
     }
 
     @PutMapping("/profile/{email}")
-    public UserDTO updateAdminProfile(@PathVariable String email, @RequestBody UserUpdateDTO dto) {
+    public UserDTO updateAdminProfile(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
         UserLoginDetails updated = new UserLoginDetails();
         updated.setEmail(dto.getEmail());
         updated.setUsername(dto.getUsername());

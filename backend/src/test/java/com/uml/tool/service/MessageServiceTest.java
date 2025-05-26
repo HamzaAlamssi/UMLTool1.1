@@ -55,4 +55,23 @@ class MessageServiceTest {
         messageService.getMessagesForProject(projectId);
         verify(messageRepository, times(1)).findByProjectOrderByTimestampAsc(project);
     }
+
+    @Test
+    void testSendMessage_SenderNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> messageService.sendMessage("sender", 1L, "content"));
+    }
+
+    @Test
+    void testSendMessage_ProjectNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(new UserLoginDetails()));
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> messageService.sendMessage("sender", 1L, "content"));
+    }
+
+    @Test
+    void testGetMessagesForProject_ProjectNotFound() {
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> messageService.getMessagesForProject(1L));
+    }
 }

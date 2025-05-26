@@ -47,22 +47,23 @@ public class UserController {
 
     @PutMapping("/{email}")
     public ResponseEntity<?> updateUser(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
-        // Only check for duplicate username/email if they are being changed to a value that belongs to another user
-        if (dto.getUsername() != null) {
-            userService.getByUsername(dto.getUsername()).ifPresent(existingUser -> {
-                if (!existingUser.getEmail().equals(email)) {
-                    throw new RuntimeException("Username already exists");
-                }
-            });
-        }
-        if (dto.getEmail() != null) {
-            userService.getByEmail(dto.getEmail()).ifPresent(existingUser -> {
-                if (!existingUser.getEmail().equals(email)) {
-                    throw new RuntimeException("Email already exists");
-                }
-            });
-        }
         try {
+            // Only check for duplicate username/email if they are being changed to a value
+            // that belongs to another user
+            if (dto.getUsername() != null) {
+                userService.getByUsername(dto.getUsername()).ifPresent(existingUser -> {
+                    if (!existingUser.getEmail().equals(email)) {
+                        throw new RuntimeException("Username already exists");
+                    }
+                });
+            }
+            if (dto.getEmail() != null) {
+                userService.getByEmail(dto.getEmail()).ifPresent(existingUser -> {
+                    if (!existingUser.getEmail().equals(email)) {
+                        throw new RuntimeException("Email already exists");
+                    }
+                });
+            }
             UserLoginDetails updated = new UserLoginDetails();
             updated.setEmail(dto.getEmail());
             updated.setUsername(dto.getUsername());
