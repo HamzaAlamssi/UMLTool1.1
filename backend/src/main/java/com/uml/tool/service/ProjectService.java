@@ -6,6 +6,8 @@ import com.uml.tool.repository.ProjectRepository;
 import com.uml.tool.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +22,7 @@ public class ProjectService {
 
     public Project createProject(String name, String ownerEmail) {
         UserLoginDetails owner = userRepository.findByEmail(ownerEmail)
-                .orElseThrow(() -> new RuntimeException("Owner not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found"));
         Project project = Project.builder()
                 .name(name)
                 .owner(owner)
@@ -33,13 +35,13 @@ public class ProjectService {
 
     public List<Project> getOwnProjects(String username) {
         UserLoginDetails owner = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return projectRepository.findByOwner(owner);
     }
 
     public List<Project> getOwnProjectsByEmail(String email) {
         UserLoginDetails owner = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return projectRepository.findByOwner(owner);
     }
 
@@ -49,19 +51,27 @@ public class ProjectService {
 
     public Project getProjectById(Long id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found with ID: " + id));
     }
 
     public Project updateDiagram(Long projectId, String diagramJson) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
         project.setDiagramJson(diagramJson);
         project.setUpdatedAt(LocalDateTime.now());
         return projectRepository.save(project);
     }
 
     public void deleteProject(Long id) {
-        projectRepository.deleteById(id);
+        if (!projectRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
+        }
+        try {
+            projectRepository.deleteById(id);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Failed to delete project: " + ex.getMessage());
+        }
     }
 
     public Project saveProject(Project project) {

@@ -7,7 +7,10 @@ import com.uml.tool.model.UserLoginDetails;
 import com.uml.tool.service.ProjectService;
 import com.uml.tool.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,9 +25,15 @@ public class ProjectController {
     private UserService userService;
 
     @PostMapping("/create")
-    public Project createProject(@RequestBody ProjectCreateDTO dto) {
-        // Use new signature: (String name, String ownerEmail)
-        return projectService.createProject(dto.getName(), dto.getOwnerEmail());
+    public ResponseEntity<?> createProject(@RequestBody ProjectCreateDTO dto) {
+        try {
+            Project project = projectService.createProject(dto.getName(), dto.getOwnerEmail());
+            return ResponseEntity.ok(project);
+        } catch (ResponseStatusException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to create project: " + ex.getMessage());
+        }
     }
 
     @GetMapping("/own")
@@ -57,7 +66,14 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id:\\d+}")
-    public void deleteProject(@PathVariable Long id) {
-        projectService.deleteProject(id);
+    public ResponseEntity<?> deleteProject(@PathVariable Long id) {
+        try {
+            projectService.deleteProject(id);
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Failed to delete project: " + ex.getMessage());
+        }
     }
 }

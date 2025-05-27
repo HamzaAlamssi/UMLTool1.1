@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestController
@@ -48,8 +49,6 @@ public class UserController {
     @PutMapping("/{email}")
     public ResponseEntity<?> updateUser(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
         try {
-            // Only check for duplicate username/email if they are being changed to a value
-            // that belongs to another user
             if (dto.getUsername() != null) {
                 userService.getByUsername(dto.getUsername()).ifPresent(existingUser -> {
                     if (!existingUser.getEmail().equals(email)) {

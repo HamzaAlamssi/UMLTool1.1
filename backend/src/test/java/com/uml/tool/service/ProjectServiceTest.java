@@ -120,6 +120,7 @@ class ProjectServiceTest {
     @Test
     void testDeleteProject() {
         Long id = 1L;
+        when(projectRepository.existsById(id)).thenReturn(true);
         projectService.deleteProject(id);
         verify(projectRepository, times(1)).deleteById(id);
     }

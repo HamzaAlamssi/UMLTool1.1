@@ -94,7 +94,7 @@ class ProjectControllerTest {
         mockMvc.perform(post("/api/projects/create")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"Test\",\"ownerEmail\":\"a@b.com\"}"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -131,6 +131,6 @@ class ProjectControllerTest {
     void testDeleteProject_Error() throws Exception {
         doThrow(new RuntimeException("error")).when(projectService).deleteProject(anyLong());
         mockMvc.perform(delete("/api/projects/1"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isConflict());
     }
 }

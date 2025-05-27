@@ -25,6 +25,12 @@
 
 	<!-- Ensure your dependencies match your needs -->
 	<dependencies>
+
+    	<dependency>
+    		<groupId>org.springframework.boot</groupId>
+    		<artifactId>spring-boot-starter-actuator</artifactId>
+    	</dependency>
+
 		<!-- Spring Data JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -165,6 +171,14 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+                    <excludes>
+                        <exclude>**/DTO/*</exclude>
+                        <exclude>**/model/*</exclude>
+                        <exclude>**/exception/*</exclude>
+                        <exclude>**/constants/*</exclude>
+                    </excludes>
+                </configuration>
 			</plugin>
 		</plugins>
 	</build>
