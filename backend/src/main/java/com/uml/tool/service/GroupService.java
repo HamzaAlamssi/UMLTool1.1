@@ -41,8 +41,8 @@ public class GroupService {
 
         List<GroupMember> members = new ArrayList<>();
         for (GroupMemberRequest memberReq : request.getMembers()) {
-            UserLoginDetails user = userRepository.findByEmail(memberReq.getEmail())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found: " + memberReq.getEmail()));
+            UserLoginDetails user = userRepository.findByUsername(memberReq.getUsername())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found: " + memberReq.getUsername()));
             GroupMember.Permission perm;
             try {
                 perm = GroupMember.Permission.valueOf(memberReq.getPermission());
@@ -50,7 +50,7 @@ public class GroupService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid permission: " + memberReq.getPermission());
             }
             // Don't add owner as member
-            if (user.getEmail().equals(project.getOwner().getEmail())) continue;
+            if (user.getUsername().equals(project.getOwner().getUsername())) continue;
             GroupMember member = GroupMember.builder()
                     .group(group)
                     .user(user)

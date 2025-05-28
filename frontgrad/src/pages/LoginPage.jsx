@@ -15,7 +15,7 @@ function LoginPage() {
     console.log("Login attempt: Email:", email, "Password:", password);
 
     const loginData = {
-      email: email,
+      username: email, // Changed from 'email' to 'username' to match backend
       password: password,
     };
 
@@ -28,6 +28,8 @@ function LoginPage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("authToken", data.token); // Save the token in localStorage
         window.location.href = "/main";
       } else {
         alert("Invalid credentials");

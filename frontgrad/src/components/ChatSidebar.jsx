@@ -17,22 +17,28 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
     if (!projectId) return;
     try {
       setLoading(true);
-      const res = await fetch(`/api/messages/project/${projectId}`);
+      const res = await fetch(`http://localhost:9000/api/messages/project/${projectId}`, {
+        credentials: "include"
+      });
+      console.log("Response status:", res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log("Fetched messages:", data);
         setMessages(
           Array.isArray(data)
             ? data.map((msg) => ({
                 id: msg.id,
-                user: msg.sender && msg.sender.email ? msg.sender.email : "Unknown",
+                user: msg.sender?.username || "Unknown",
                 text: msg.content,
                 timestamp: msg.timestamp,
               }))
             : []
         );
+      } else {
+        console.error("Server returned error:", res.status);
       }
     } catch (e) {
-      // Optionally handle error
+      console.error("Error fetching messages:", e);
     } finally {
       setLoading(false);
     }
@@ -40,7 +46,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
 
   // Proper WebSocket management and cleanup
   useEffect(() => {
-    if (!projectId || !currentUser?.email) return;
+    if (!projectId || !currentUser?.username) return;
     const socket = new SockJS("http://localhost:9000/ws");
     const client = new Client({
       webSocketFactory: () => socket,
@@ -55,7 +61,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
           ...prev,
           {
             id: msg.id,
-            user: msg.sender?.email || "Unknown",
+            user: msg.sender?.username || "Unknown",
             text: msg.content,
             timestamp: msg.timestamp,
           },
@@ -68,7 +74,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
         wsClientRef.current.deactivate();
       }
     };
-  }, [projectId, currentUser?.email]);
+  }, [projectId, currentUser?.username]);
 
   // Always fetch messages when component mounts or projectId changes
   useEffect(() => {
@@ -81,12 +87,12 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
 
   // Send message via WebSocket or HTTP POST
   const sendMessage = async () => {
-    if (!input.trim() || !currentUser?.email || !projectId) {
+    if (!input.trim() || !currentUser?.username || !projectId) {
       alert("Missing message, user, or project info.");
       return;
     }
     const messagePayload = {
-      senderId: currentUser.email, // Use email for user identification
+      senderId: currentUser.username, // Use username for user identification
       projectId,
       content: input.trim(),
     };
@@ -102,9 +108,13 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
       }
     } else {
       try {
-        const res = await fetch("/api/messages/send", {
+        const token = localStorage.getItem("authToken"); // Retrieve token from localStorage or another storage mechanism
+        const res = await fetch("http://localhost:9000/api/messages/send", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}` // Include the token in the Authorization header
+          },
           body: JSON.stringify(messagePayload),
         });
         if (res.ok) {
@@ -144,7 +154,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
       <div className={styles.chatMessages}>
         {loading ? (
           <div style={{ textAlign: "center", color: "#888", fontSize: "1.1em", marginTop: "2em" }}>
-            Loading messages...
+            Loading messages, please wait...
           </div>
         ) : (
           <>
@@ -178,30 +188,32 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
                     )}
                     <div
                       className={
-                        msg.user === currentUser.email
+                        msg.user === currentUser.username
                           ? `${styles.messageRow} ${styles.you}`
                           : `${styles.messageRow}`
                       }
                     >
                       <div
                         className={
-                          msg.user === currentUser.email
+                          msg.user === currentUser.username
                             ? `${styles.messageBubble} ${styles.you}`
                             : `${styles.messageBubble} ${styles.other}`
                         }
                       >
-                        {msg.user !== currentUser.email && (
+                        {msg.user !== currentUser.username && (
                           <span className={styles.messageUser}>{msg.user}</span>
                         )}
                         <span>{msg.text}</span>
-                        <div style={{ fontSize: "0.8em", color: "#888", marginTop: 2 }}>
-                          {msg.timestamp && new Date(msg.timestamp).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            hour12: true,
-                            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                          })}
-                        </div>
+                        {msg.timestamp && (
+                          <div style={{ fontSize: "0.8em", color: "#888", marginTop: 2 }}>
+                            {new Date(msg.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </React.Fragment>

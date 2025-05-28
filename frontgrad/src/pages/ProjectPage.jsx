@@ -14,6 +14,7 @@ function ProjectPage() {
   const [project, setProject] = useState(null);
   const [initialModel, setInitialModel] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [error, setError] = useState(null);
   const { id: projectId } = useParams();
 
   useEffect(() => {
@@ -45,6 +46,10 @@ function ProjectPage() {
           setInitialModel(null);
           console.info("[ProjectPage] No diagram_json found, initialModel set to null");
         }
+      })
+      .catch((err) => {
+        setError("Failed to load project data. Please try again later.");
+        console.error(err);
       });
   }, [projectId]);
 
@@ -52,11 +57,7 @@ function ProjectPage() {
     fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        // Ensure currentUser has an email property for ChatSidebar
-        if (data && !data.email && data.username) {
-          data.email = data.username;
-        }
-        setCurrentUser(data);
+        setCurrentUser(data && data.username ? data : null);
       });
   }, []);
 
@@ -83,7 +84,9 @@ function ProjectPage() {
             )}
           </div>
         ) : (
-          <div>Loading project...</div>
+          <div style={{ textAlign: 'center', color: '#888', marginTop: '2em' }}>
+            Loading project details, please wait...
+          </div>
         )}
       </div>
       <UmlEditor
@@ -115,6 +118,12 @@ function ProjectPage() {
           setShareOpen(true);
         }}
       />
+      {/* If error state is used, ensure it is friendly */}
+      {error && (
+        <div style={{ color: 'red', textAlign: 'center', marginTop: '2em' }}>
+          Oops! Something went wrong: {error}
+        </div>
+      )}
     </>
   );
 }

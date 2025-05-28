@@ -3,7 +3,6 @@ package com.uml.tool.controller;
 import com.uml.tool.constants.UserRoles;
 import com.uml.tool.model.UserLoginDetails;
 import com.uml.tool.repository.UserLoginDetailsRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,20 +34,18 @@ public class AuthController {
 
     // Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
-        if (request.getSession(false) != null) {
-            request.getSession(false).invalidate();
-        }
-        request.getSession(true);
-        log.debug("Login attempt - Email: {}, Password: {}", loginRequest.getEmail(), loginRequest.getPassword());
+    public ResponseEntity<?> login(@RequestBody UserLoginDetails loginDetails) {
+        log.info("Attempting login for username: {}", loginDetails.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginDetails.getUsername(), loginDetails.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            request.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-            return ResponseEntity.ok("Login successful");
-        } catch (AuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+            log.info("Login successful for username: {}", loginDetails.getUsername());
+            return ResponseEntity.ok().build();
+        } catch (AuthenticationException e) {
+            log.error("Login failed for username: {}. Reason: {}", loginDetails.getUsername(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 

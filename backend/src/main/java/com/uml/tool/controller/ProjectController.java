@@ -23,23 +23,12 @@ public class ProjectController {
 
     @PostMapping("/create")
     public Project createProject(@RequestBody ProjectCreateDTO dto) {
-        // Change to use ownerEmail instead of ownerUsername
-        return projectService.createProject(dto.getName(), dto.getDiagramType(), dto.getOwnerEmail());
+        return projectService.createProject(dto.getName(), dto.getDiagramType(), dto.getOwnerUsername());
     }
 
     @GetMapping("/own")
-    public List<ProjectDTO> getOwnProjects(@RequestParam String email) {
-        // Only return minimal project info, not full entity
-        return projectService.getOwnProjectsByEmail(email)
-                .stream()
-                .map(ProjectDTO::fromEntity)
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/shared")
-    public List<ProjectDTO> getSharedProjects(@RequestParam String email) {
-        // Only show projects where user is a group member, not owner
-        return projectService.getSharedProjects(email)
+    public List<ProjectDTO> getOwnProjects(@RequestParam String username) {
+        return projectService.getOwnProjects(username)
                 .stream()
                 .map(ProjectDTO::fromEntity)
                 .collect(Collectors.toList());

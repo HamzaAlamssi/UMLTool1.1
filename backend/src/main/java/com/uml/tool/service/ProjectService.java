@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProjectService {
@@ -18,8 +17,8 @@ public class ProjectService {
     @Autowired
     private UserRepository userRepository;
 
-    public Project createProject(String name, String diagramType, String ownerEmail) {
-        UserLoginDetails owner = userRepository.findByEmail(ownerEmail)
+    public Project createProject(String name, String diagramType, String ownerUsername) {
+        UserLoginDetails owner = userRepository.findByUsername(ownerUsername)
                 .orElseThrow(() -> new RuntimeException("Owner not found"));
         Project project = Project.builder()
                 .name(name)
@@ -36,16 +35,6 @@ public class ProjectService {
         UserLoginDetails owner = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return projectRepository.findByOwner(owner);
-    }
-
-    public List<Project> getOwnProjectsByEmail(String email) {
-        UserLoginDetails owner = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return projectRepository.findByOwner(owner);
-    }
-
-    public List<Project> getSharedProjects(String email) {
-        return projectRepository.findSharedProjectsByEmail(email);
     }
 
     public Project getProjectById(Long id) {

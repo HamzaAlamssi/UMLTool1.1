@@ -142,47 +142,65 @@ const DeleteUserPage = () => {
               />
             </div>
           </div>
-          <div>
+          <div className={styles.userListContainer}>
             {loading ? (
-              <div>Loading...</div>
+              <div>Loading users, please wait...</div>
             ) : error ? (
-              <div className={styles.emptyState}>{error}</div>
+              <div className={styles.emptyState}>Oops! Something went wrong: {error}</div>
             ) : users.length === 0 ? (
-              <div className={styles.emptyState}>No users found</div>
+              <div className={styles.emptyState}>No users found. Try adjusting your search or add a new user!</div>
             ) : (
               <div className={styles.usersGrid}>
-                {users.map((user) => (
-                  <div
-                    key={user.email}
-                    className={`${styles.userCard} ${
-                      selected.includes(user.email) ? styles.selected : ""
-                    }`}
-                    onClick={() => toggleSelection(user.email)}
-                  >
-                    <div
-                      className={styles.checkboxContainer}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(user.email)}
-                        onChange={() => toggleSelection(user.email)}
-                      />
-                      <span className={styles.checkmark} />
-                    </div>
-                    <div className={styles.userAvatar}>
-                      {user.profileImage ? (
-                        <img src={user.profileImage} alt={user.username} />
-                      ) : user.firstName && user.lastName ? (
-                        `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-                      ) : (
-                        user.username[0].toUpperCase()
-                      )}
-                    </div>
-                    <div className={styles.userInfo}>
-                      <div className={styles.userName}>{user.username}</div>
-                      <div className={styles.userEmail}>{user.email}</div>
-                    </div>
+                {users.reduce((rows, user, idx) => {
+                  if (idx % 2 === 0) rows.push([]);
+                  rows[rows.length - 1].push(user);
+                  return rows;
+                }, []).map((row, rowIdx) => (
+                  <div key={rowIdx} className={styles.userRow}>
+                    {row.map((user) => (
+                      <div
+                        key={user.email}
+                        className={`${styles.userCard} ${selected.includes(user.email) ? styles.selected : ""}`}
+                        onClick={(e) => {
+                          // Only toggle selection if clicking the checkbox or checkmark
+                          if (
+                            e.target.tagName === "INPUT" ||
+                            e.target.tagName === "SPAN"
+                          ) {
+                            toggleSelection(user.email);
+                          }
+                          // Otherwise, do nothing
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div
+                          className={styles.checkboxContainer}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(user.email)}
+                            onChange={() => toggleSelection(user.email)}
+                          />
+                          <span className={styles.checkmark} />
+                        </div>
+                        <div className={styles.userAvatar}>
+                          {user.profileImage ? (
+                            <img src={user.profileImage} alt={user.username} />
+                          ) : user.firstName && user.lastName ? (
+                            `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                          ) : (
+                            user.username[0].toUpperCase()
+                          )}
+                        </div>
+                        <div className={styles.userInfo}>
+                          <div className={styles.userName}>{user.username}</div>
+                          <div className={styles.userEmail}>{user.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {row.length === 1 && <div className={styles.userCard} style={{visibility: 'hidden'}} />} {/* For alignment if odd */}
+                    {rowIdx !== Math.floor(users.length / 2) && <hr className={styles.rowDivider} />}
                   </div>
                 ))}
               </div>

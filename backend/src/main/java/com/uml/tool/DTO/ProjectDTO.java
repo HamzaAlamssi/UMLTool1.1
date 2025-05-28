@@ -2,7 +2,6 @@ package com.uml.tool.DTO;
 
 import com.uml.tool.model.Project;
 import com.uml.tool.model.Group;
-import com.uml.tool.model.GroupMember;
 import lombok.Data;
 
 import java.util.List;
@@ -35,8 +34,8 @@ public class ProjectDTO {
             dto.groupName = group.getName();
             if (group.getMembers() != null) {
                 dto.groupMembers = group.getMembers().stream()
-                        .map(m -> m.getUser() != null ? m.getUser().getEmail() : null)
-                        .filter(email -> email != null)
+                        .map(m -> m.getUser() != null ? m.getUser().getUsername() : null)
+                        .filter(username -> username != null)
                         .collect(Collectors.toList());
             }
         }

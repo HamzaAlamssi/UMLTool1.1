@@ -8,9 +8,11 @@ import { useNavigate } from "react-router-dom";
 function SharedWithMePage() {
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    setLoading(true);
     fetch("http://localhost:9000/auth/aUser", {
       method: "GET",
       credentials: "include",
@@ -35,7 +37,8 @@ function SharedWithMePage() {
       .then((data) => setProjects(Array.isArray(data) ? data : []))
       .catch((err) =>
         setError(err.message || "Failed to fetch shared projects")
-      );
+      )
+      .finally(() => setLoading(false));
   }, []);
 
   const handleCardClick = (projectId) => {
@@ -51,10 +54,12 @@ function SharedWithMePage() {
           <h2 className={styles.title}>Shared With Me</h2>
           <div className={styles.underline} />
           <div className={styles.cardsContainer}>
-            {error ? (
-              <div style={{ color: "red" }}>{error}</div>
+            {loading ? (
+              <div>Loading shared projects, please wait...</div>
+            ) : error ? (
+              <div style={{ color: "red" }}>Oops! Something went wrong: {error}</div>
             ) : projects.length === 0 ? (
-              <div>No shared projects found.</div>
+              <div>No shared projects found. If you think something should be here, check with your collaborators!</div>
             ) : (
               projects.map((project) => (
                 <ProjectCard

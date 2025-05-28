@@ -15,4 +15,6 @@ public interface UserLoginDetailsRepository extends JpaRepository<UserLoginDetai
     void deleteByEmail(String email);
 
     List<UserLoginDetails> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email);
+
+    List<UserLoginDetails> findByIsDeletedFalse();
 }
