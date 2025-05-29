@@ -43,7 +43,7 @@ public class AuthController {
 
     // Login endpoint
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         if (request.getSession(false) != null) {
             request.getSession(false).invalidate();
         }
@@ -52,16 +52,19 @@ public class AuthController {
         log.debug("Login attempt - Email: {}, Password: {}", loginRequest.getEmail(), loginRequest.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDetails.getUsername(), loginDetails.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             request.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
             // Set JSESSIONID cookie manually if not present (for MockMvc tests)
+            Map<String, String> result = new HashMap<>();
+            result.put("message", "Login successful");
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, "JSESSIONID=" + request.getSession().getId() + "; Path=/; HttpOnly")
-                    .body("Login successful");
+                    .body(result);
         } catch (AuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Invalid email or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }
 

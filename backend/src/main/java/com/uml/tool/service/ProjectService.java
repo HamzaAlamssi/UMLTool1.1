@@ -33,7 +33,7 @@ public class ProjectService {
     }
 
     public List<Project> getOwnProjects(String username) {
-        UserLoginDetails owner = userRepository.findByUsername(username)
+        UserLoginDetails owner = userRepository.findByEmail(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return projectRepository.findByOwner(owner);
     }
@@ -47,6 +47,7 @@ public class ProjectService {
     public List<Project> getSharedProjects(String email) {
         return projectRepository.findSharedProjectsByEmail(email);
     }
+
     public Project getProjectById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(

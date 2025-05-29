@@ -37,8 +37,16 @@ public class ProjectController {
     }
 
     @GetMapping("/own")
-    public List<ProjectDTO> getOwnProjects(@RequestParam String username) {
-        return projectService.getOwnProjects(username)
+    public List<ProjectDTO> getOwnProjects(@RequestParam String email) {
+        return projectService.getOwnProjectsByEmail(email)
+                .stream()
+                .map(ProjectDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/shared")
+    public List<ProjectDTO> getSharedProjects(@RequestParam String email) {
+        return projectService.getSharedProjects(email)
                 .stream()
                 .map(ProjectDTO::fromEntity)
                 .collect(Collectors.toList());
@@ -77,7 +85,8 @@ public class ProjectController {
             projectService.updateProjectName(projectId, newName);
             return ResponseEntity.ok().build();
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to update project name: " + ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Failed to update project name: " + ex.getMessage());
         }
     }
 }

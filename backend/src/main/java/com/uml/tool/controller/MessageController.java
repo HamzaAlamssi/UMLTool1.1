@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -21,15 +22,19 @@ public class MessageController {
     private static final Logger logger = LoggerFactory.getLogger(MessageController.class);
 
     @PostMapping("/send")
-    public Message sendMessage(@RequestBody MessageDTO dto) {
-        logger.info("Received sendMessage request: senderId={}, projectId={}, content={}", dto.getSenderId(), dto.getProjectId(), dto.getContent());
+    public ResponseEntity<?> sendMessage(@RequestBody MessageDTO dto) {
+        logger.info("Received sendMessage request: senderId={}, projectId={}, content={}", dto.getSenderId(),
+                dto.getProjectId(), dto.getContent());
         try {
             Message message = messageService.sendMessage(dto.getSenderId(), dto.getProjectId(), dto.getContent());
-            logger.info("Message successfully sent: id={}, sender={}, projectId={}", message.getId(), message.getSender().getUsername(), message.getProject().getId());
-            return message;
+            String senderUsername = (message.getSender() != null) ? message.getSender().getUsername() : "null";
+            Long projectId = (message.getProject() != null) ? message.getProject().getId() : null;
+            logger.info("Message successfully sent: id={}, sender={}, projectId={}", message.getId(), senderUsername,
+                    projectId);
+            return ResponseEntity.ok(message);
         } catch (Exception e) {
             logger.error("Error while sending message: {}", e.getMessage(), e);
-            throw e;
+            return ResponseEntity.status(500).body("{\"error\":\"Failed to send message: " + e.getMessage() + "\"}");
         }
     }
 

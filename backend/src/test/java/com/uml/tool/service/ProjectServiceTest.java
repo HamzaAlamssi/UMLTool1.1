@@ -58,7 +58,7 @@ class ProjectServiceTest {
 
     @Test
     void testGetOwnProjects_UserNotFound() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> projectService.getOwnProjects("username"));
     }
 

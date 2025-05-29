@@ -15,7 +15,7 @@ function LoginPage() {
     console.log("Login attempt: Email:", email, "Password:", password);
 
     const loginData = {
-      username: email, // Changed from 'email' to 'username' to match backend
+      email: email, // Use 'email' to match backend's usernameParameter
       password: password,
     };
 

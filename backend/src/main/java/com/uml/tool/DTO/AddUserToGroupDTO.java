@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class AddUserToGroupDTO {
     private Long groupId;
-    private String username;
+    private String email;
 }

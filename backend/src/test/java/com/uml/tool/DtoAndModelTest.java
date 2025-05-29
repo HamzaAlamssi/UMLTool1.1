@@ -136,9 +136,9 @@ public class DtoAndModelTest {
     void testAddUserToGroupDTO() {
         AddUserToGroupDTO dto = new AddUserToGroupDTO();
         dto.setGroupId(1L);
-        dto.setUsername("user");
+        dto.setEmail("user@example.com");
         assertEquals(1L, dto.getGroupId());
-        assertEquals("user", dto.getUsername());
+        assertEquals("user@example.com", dto.getEmail());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class DtoAndModelTest {
         m.setSender(new UserLoginDetails());
         m.setProject(new Project());
         m.setContent("hi");
-        m.setTimestamp(java.time.LocalDateTime.now());
+        m.setTimestamp(java.time.Instant.now());
         assertEquals(1L, m.getId());
         assertNotNull(m.getSender());
         assertNotNull(m.getProject());
@@ -408,9 +408,9 @@ public class DtoAndModelTest {
     void testAddUserToGroupDTOGettersSetters() {
         AddUserToGroupDTO dto = new AddUserToGroupDTO();
         dto.setGroupId(1L);
-        dto.setUsername("user");
+        dto.setEmail("user@example.com");
         assertEquals(1L, dto.getGroupId());
-        assertEquals("user", dto.getUsername());
+        assertEquals("user@example.com", dto.getEmail());
     }
 
     @Test

@@ -15,10 +15,10 @@ import lombok.Setter;
         @UniqueConstraint(columnNames = "username")
 })
 public class UserLoginDetails {
-    @Id
     @Column(name = "username", unique = true, nullable = false)
     String username;
 
+    @Id
     @Column(name = "email", unique = true, nullable = false)
     String email;
 

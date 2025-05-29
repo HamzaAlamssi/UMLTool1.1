@@ -34,13 +34,6 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetByUsername() {
-        String username = "testuser";
-        userService.getByUsername(username);
-        verify(userRepository, times(1)).findByUsername(username);
-    }
-
-    @Test
     void testGetByEmail() {
         String email = "test@example.com";
         userService.getByEmail(email);
@@ -79,17 +72,6 @@ class UserServiceTest {
     }
 
     @Test
-    void testChangePassword() {
-        String email = "test@example.com";
-        UserLoginDetails user = new UserLoginDetails();
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
-        userService.changePassword(email, "newpass");
-        verify(userRepository, times(1)).save(user);
-        verify(passwordEncoder, times(1)).encode("newpass");
-    }
-
-    @Test
     void testSearchUsers() {
         String query = "search";
         userService.searchUsers(query);
@@ -103,8 +85,19 @@ class UserServiceTest {
     }
 
     @Test
+    void testChangePassword() {
+        String email = "test@example.com";
+        UserLoginDetails user = new UserLoginDetails();
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded");
+        userService.changePasswordByEmail(email, "newpass");
+        verify(userRepository, times(1)).save(user);
+        verify(passwordEncoder, times(1)).encode("newpass");
+    }
+
+    @Test
     void testChangePassword_UserNotFound() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-        assertDoesNotThrow(() -> userService.changePassword("email", "newpass"));
+        assertDoesNotThrow(() -> userService.changePasswordByEmail("email", "newpass"));
     }
 }

@@ -26,8 +26,8 @@ public class AdminService {
     }
 
     public UserLoginDetails addUser(UserLoginDetails user) {
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this username already exists.");
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this email already exists.");
         }
         user.setRole(UserRoles.USER);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -38,13 +38,13 @@ public class AdminService {
         return userRepository.findAll();
     }
 
-    public Optional<UserLoginDetails> getAdminByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public Optional<UserLoginDetails> getAdminByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .filter(user -> user.getRole() == UserRoles.ADMIN);
     }
 
-    public UserLoginDetails updateAdminProfile(String username, UserLoginDetails updated) {
-        return userRepository.findByUsername(username).map(admin -> {
+    public UserLoginDetails updateAdminProfile(String email, UserLoginDetails updated) {
+        return userRepository.findByEmail(email).map(admin -> {
             admin.setFirstName(updated.getFirstName());
             admin.setLastName(updated.getLastName());
             admin.setUsername(updated.getUsername());
@@ -54,7 +54,7 @@ public class AdminService {
         }).orElseThrow();
     }
 
-    public void deleteUserByUsername(String username) {
-        userRepository.deleteById(username);
+    public void deleteUserByEmail(String email) {
+        userRepository.deleteByEmail(email);
     }
 }

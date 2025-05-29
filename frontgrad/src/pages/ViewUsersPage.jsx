@@ -139,7 +139,7 @@ const ViewUsersPage = () => {
                           className={styles.userCard}
                           style={{ cursor: "pointer" }}
                           onClick={() => {
-                            window.location.href = `/ManageUserProfile?username=${encodeURIComponent(user.username)}`;
+                            window.location.href = `/ManageUserProfile?email=${encodeURIComponent(user.email)}`;
                           }}
                         >
                           <div className={styles.userAvatar}>
@@ -147,8 +147,12 @@ const ViewUsersPage = () => {
                               <img src={user.profileImage} alt={user.username} />
                             ) : user.firstName && user.lastName ? (
                               `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                            ) : user.username ? (
+                              user.username[0]?.toUpperCase()
+                            ) : user.email ? (
+                              user.email[0]?.toUpperCase()
                             ) : (
-                              user.username[0].toUpperCase()
+                              "?"
                             )}
                           </div>
                           <div className={styles.userInfo}>
@@ -172,7 +176,7 @@ const ViewUsersPage = () => {
               </div>
             )}
           </div>
-          <footer className={styles.dashboardFooter} style={{display: 'none'}}>
+          <footer className={styles.dashboardFooter} style={{ display: 'none' }}>
             {/* Footer hidden in view user page */}
           </footer>
         </div>

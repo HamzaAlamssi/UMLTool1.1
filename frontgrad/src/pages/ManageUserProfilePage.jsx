@@ -15,17 +15,17 @@ const occupationOptions = [
 const ProfileDashboard = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const userUsername = params.get("username");
+  const userEmail = params.get("email");
 
   const [userData, setUserData] = useState({
     username: "",
     firstName: "",
     lastName: "",
     email: "",
-    password: "", // Ensure password is always initialized as empty
     image: "",
     occupation: "",
   });
+  const [password, setPassword] = useState(""); // Separate state for password
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,8 +33,8 @@ const ProfileDashboard = () => {
   const [originalEmail, setOriginalEmail] = useState(""); // Track original email
 
   useEffect(() => {
-    if (!userUsername) return;
-    fetch(`http://localhost:9000/api/users/by-username/${encodeURIComponent(userUsername)}`, { credentials: "include" })
+    if (!userEmail) return;
+    fetch(`http://localhost:9000/api/users/${encodeURIComponent(userEmail)}`, { credentials: "include" })
       .then((res) =>
         res.ok ? res.json() : Promise.reject("User not found")
       )
@@ -43,16 +43,16 @@ const ProfileDashboard = () => {
           firstName: data.firstName || "",
           lastName: data.lastName || "",
           email: data.email || "",
-          password: "", // Ensure password is always empty when loading user data
           image: data.profileImage || "",
           occupation: data.occupation || "",
           username: data.username || "",
         });
+        setPassword(""); // Always clear password field on load
       })
       .catch((err) => {
         setError(err?.toString() || "Failed to fetch user info.");
       });
-  }, [userUsername]);
+  }, [userEmail]);
 
   useEffect(() => {
     if (success || error) {
@@ -84,15 +84,13 @@ const ProfileDashboard = () => {
     return (firstName?.[0] || "") + (lastName?.[0] || "");
   };
 
+  // In handleSave, only check for duplicate email/username if changed
   const handleSave = async () => {
     setError("");
     setSuccess("");
-
     try {
       const res = await fetch(
-        `http://localhost:9000/api/users/${encodeURIComponent(
-          userData.username
-        )}`,
+        `http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -100,13 +98,13 @@ const ProfileDashboard = () => {
           body: JSON.stringify({
             ...userData,
             profileImage: userData.image,
-            ...(userData.password && { password: userData.password }),
+            ...(password && { password }),
           }),
         }
       );
-
       if (res.ok) {
         setSuccess("Profile updated successfully!");
+        setPassword(""); // Clear password after save
       } else if (res.status === 400) {
         const data = await res.json();
         setError(Object.values(data).join(" "));
@@ -125,7 +123,7 @@ const ProfileDashboard = () => {
         onLogout={() => (window.location.href = "/login")}
       />
       <main className={styles.main}>
-        {!userUsername ? (
+        {!userEmail ? (
           <div style={{
             color: '#348983',
             fontWeight: 700,
@@ -142,7 +140,7 @@ const ProfileDashboard = () => {
             transition: 'background 0.2s',
             display: 'block',
           }}>
-           Please choose a user from the <span style={{color: '#2f847c', fontWeight: 800}}>View Users Page </span> to manage their profile.
+            Please choose a user from the <span style={{ color: '#2f847c', fontWeight: 800 }}>View Users Page </span> to manage their profile.
           </div>
         ) : (
           <div className={styles.profileCard}>
@@ -185,28 +183,67 @@ const ProfileDashboard = () => {
                 />
               </div>
 
-              {/* Username field (always read-only) */}
+              {/* Email field (always read-only) */}
+              <div className={styles.profileField}>
+                <label className={styles.fieldLabel}>Email Address</label>
+                <div className={styles.fieldValue}>
+                  <span className={styles.fieldText}>{userData.email}</span>
+                </div>
+              </div>
+
+              {/* Username field (editable) */}
               <div className={styles.profileField}>
                 <label className={styles.fieldLabel}>Username</label>
                 <div className={styles.fieldValue}>
-                  <span className={styles.fieldText}>{userData.username}</span>
+                  {editField === "username" ? (
+                    <input
+                      className={styles.selectInput}
+                      type="text"
+                      value={userData.username}
+                      onChange={e => updateField("username", e.target.value)}
+                      onBlur={() => setEditField(null)}
+                      autoFocus
+                      disabled={false}
+                      style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                    />
+                  ) : (
+                    <React.Fragment>
+                      <span className={styles.fieldText}>{userData.username}</span>
+                      <button
+                        className={styles.changeBtn}
+                        onClick={() => setEditField("username")}
+                        disabled={false}
+                        style={{
+                          opacity: 1,
+                          pointerEvents: 'auto',
+                          background: '#2f847c',
+                          color: '#fff',
+                          border: 'none',
+                          boxShadow: '0 2px 8px rgba(52,137,131,0.08)',
+                          transition: 'background 0.2s',
+                          fontWeight: 600,
+                          marginLeft: 8
+                        }}
+                      >
+                        <FaPencilAlt /> Edit
+                      </button>
+                    </React.Fragment>
+                  )}
                 </div>
               </div>
 
               {/* Other fields */}
-              {["firstName", "lastName", "email", "occupation", "password"].map(
+              {["firstName", "lastName", "occupation", "password"].map(
                 (field) => (
                   <div className={styles.profileField} key={field}>
                     <label className={styles.fieldLabel}>
                       {field === "firstName"
                         ? "First Name"
                         : field === "lastName"
-                        ? "Last Name"
-                        : field === "email"
-                        ? "Email Address"
-                        : field === "occupation"
-                        ? "Occupation"
-                        : "Password"}
+                          ? "Last Name"
+                          : field === "occupation"
+                            ? "Occupation"
+                            : "Password"}
                     </label>
                     {field === "occupation" ? (
                       <select
@@ -224,41 +261,54 @@ const ProfileDashboard = () => {
                     ) : (
                       <div className={styles.fieldValue}>
                         {editField === field ? (
-                          <input
-                            className={styles.selectInput}
-                            type={field === "password" ? "password" : field === "email" ? "email" : "text"}
-                            value={field === "password" ? "" : userData[field]}
-                            onChange={e => updateField(field, e.target.value)}
-                            onBlur={async () => {
-                              if (field === "email" && userData.email !== originalEmail) {
-                                try {
-                                  const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`, { credentials: "include" });
-                                  if (res.ok) {
-                                    const data = await res.json();
-                                    let othersWithEmail = [];
-                                    if (Array.isArray(data)) {
-                                      othersWithEmail = data.filter(u => u.email === userData.email && u.username && u.username !== userData.username);
-                                    } else if (data && typeof data === "object") {
-                                      if (data.email === userData.email && data.username && data.username !== userData.username) {
-                                        othersWithEmail = [data];
+                          field === "password" ? (
+                            <input
+                              className={styles.selectInput}
+                              type="password"
+                              value={password}
+                              onChange={e => setPassword(e.target.value)}
+                              autoFocus={editField === "password"}
+                              disabled={false}
+                              style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                              onBlur={() => setEditField(null)}
+                            />
+                          ) : (
+                            <input
+                              className={styles.selectInput}
+                              type={field === "email" ? "email" : "text"}
+                              value={userData[field]}
+                              onChange={e => updateField(field, e.target.value)}
+                              onBlur={async () => {
+                                if (field === "email" && userData.email !== originalEmail) {
+                                  try {
+                                    const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`, { credentials: "include" });
+                                    if (res.ok) {
+                                      const data = await res.json();
+                                      let othersWithEmail = [];
+                                      if (Array.isArray(data)) {
+                                        othersWithEmail = data.filter(u => u.email === userData.email && u.username && u.username !== userData.username);
+                                      } else if (data && typeof data === "object") {
+                                        if (data.email === userData.email && data.username && data.username !== userData.username) {
+                                          othersWithEmail = [data];
+                                        }
+                                      }
+                                      if (othersWithEmail.length > 0) {
+                                        setError("This email is already taken by another user.");
+                                        setTimeout(() => setError(""), 3000);
+                                        return;
                                       }
                                     }
-                                    if (othersWithEmail.length > 0) {
-                                      setError("This email is already taken by another user.");
-                                      setTimeout(() => setError(""), 3000);
-                                      return;
-                                    }
+                                  } catch {
+                                    // Suppress backend error messages about non-unique results
                                   }
-                                } catch {
-                                  // Suppress backend error messages about non-unique results
                                 }
-                              }
-                              setEditField(null);
-                            }}
-                            autoFocus
-                            disabled={false}
-                            style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
-                          />
+                                setEditField(null);
+                              }}
+                              autoFocus
+                              disabled={false}
+                              style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                            />
+                          )
                         ) : (
                           <React.Fragment>
                             <span className={styles.fieldText}>

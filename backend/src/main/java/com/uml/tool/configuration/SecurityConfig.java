@@ -43,20 +43,17 @@ public class SecurityConfig {
                             "/api/admin/add-admin",
                             "/error").permitAll();
                     registry.anyRequest().authenticated();
-
-                    // }).formLogin(httpSecurityFormLoginConfigurer -> {
-                    // httpSecurityFormLoginConfigurer
-                    // .loginPage("/auth/login")
-                    // .successHandler(new AuthenticationSuccessHandler())
-                    // .permitAll();
                 })
+                // .formLogin(form -> form
+                // .loginPage("/auth/login")
+                // .emailParameter("email") // Use email as the username field
+                // .passwordParameter("password")
+                // .permitAll())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .invalidSessionUrl("/")
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
-                // .logout(logout ->
-                // logout.deleteCookies("JSESSIONID").invalidateHttpSession(true))
                 .build();
     }
 

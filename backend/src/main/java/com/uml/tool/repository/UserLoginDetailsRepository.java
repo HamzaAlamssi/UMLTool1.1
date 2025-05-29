@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+// NOTE: The primary key (ID) for UserLoginDetails is now email, not username.
 public interface UserLoginDetailsRepository extends JpaRepository<UserLoginDetails, String> {
     Optional<UserLoginDetails> findByEmail(String email);
 

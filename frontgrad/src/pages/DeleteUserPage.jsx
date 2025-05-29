@@ -53,10 +53,10 @@ const DeleteUserPage = () => {
     setError("");
     setSuccess("");
     try {
-      // Call admin endpoint for each selected user
+      // Call correct endpoint for each selected user (now /api/users/:email)
       await Promise.all(
         selected.map(async (email) => {
-          const res = await fetch(`http://localhost:9000/api/admin/delete-user/${encodeURIComponent(email)}`, {
+          const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(email)}`, {
             method: "DELETE",
             credentials: "include",
           });
@@ -189,8 +189,12 @@ const DeleteUserPage = () => {
                             <img src={user.profileImage} alt={user.username} />
                           ) : user.firstName && user.lastName ? (
                             `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                          ) : user.username ? (
+                            user.username[0]?.toUpperCase()
+                          ) : user.email ? (
+                            user.email[0]?.toUpperCase()
                           ) : (
-                            user.username[0].toUpperCase()
+                            "?"
                           )}
                         </div>
                         <div className={styles.userInfo}>
@@ -199,7 +203,7 @@ const DeleteUserPage = () => {
                         </div>
                       </div>
                     ))}
-                    {row.length === 1 && <div className={styles.userCard} style={{visibility: 'hidden'}} />} {/* For alignment if odd */}
+                    {row.length === 1 && <div className={styles.userCard} style={{ visibility: 'hidden' }} />} {/* For alignment if odd */}
                     {rowIdx !== Math.floor(users.length / 2) && <hr className={styles.rowDivider} />}
                   </div>
                 ))}
