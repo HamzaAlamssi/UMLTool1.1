@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserLoginDetailsRepository extends JpaRepository<UserLoginDetails, String> {
-    Optional<UserLoginDTO> findByEmail(String email);
+    Optional<UserLoginDetails> findByEmail(String email);
 
     Optional<UserLoginDetails> findByUsername(String username);
 

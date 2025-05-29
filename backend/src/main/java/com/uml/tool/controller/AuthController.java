@@ -2,6 +2,7 @@ package com.uml.tool.controller;
 
 import com.uml.tool.constants.UserRoles;
 import com.uml.tool.model.UserLoginDetails;
+import com.uml.tool.DTO.UserLoginDTO;
 import com.uml.tool.repository.UserLoginDetailsRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Email;
@@ -17,6 +18,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -91,9 +96,39 @@ public class AuthController {
     @GetMapping("/aUser")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
-            return ResponseEntity.ok(authentication.getPrincipal());
+            String email = authentication.getName(); // This is the email
+            // Fetch user from DB
+            Optional<UserLoginDetails> userOpt = userLoginDetailsRepository.findByEmail(email);
+            if (userOpt.isPresent()) {
+                UserLoginDetails user = userOpt.get();
+                // Log user info
+                log.info("Fetched user info: {}", user);
+                // Return all user info (except password)
+                Map<String, Object> userInfo = new HashMap<>();
+                userInfo.put("email", user.getEmail());
+                userInfo.put("username", user.getUsername());
+                userInfo.put("role", user.getRole());
+                userInfo.put("firstName", user.getFirstName());
+                userInfo.put("lastName", user.getLastName());
+                userInfo.put("occupation", user.getOccupation());
+                userInfo.put("profileImage", user.getProfileImage());
+                return ResponseEntity.ok(userInfo);
+            }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        try {
+            if (request.getSession(false) != null) {
+                request.getSession(false).invalidate();
+            }
+        } catch (Exception e) {
+            // Ignore if session is already invalidated
+        }
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logged out");
     }
 
     @Getter

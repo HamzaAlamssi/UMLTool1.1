@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../components/styles/user-pages/LoginPage.module.css";
 
-function LoginPage() {
+function AdminLoginPage() {
+    
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
@@ -12,13 +16,11 @@ function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login attempt: Email:", email, "Password:", password);
-
+    setError("");
     const loginData = {
       email: email,
       password: password,
     };
-
     try {
       const response = await fetch("http://localhost:9000/auth/login", {
         method: "POST",
@@ -26,15 +28,27 @@ function LoginPage() {
         credentials: "include",
         body: JSON.stringify(loginData),
       });
-
       if (response.ok) {
-        window.location.href = "/main";
+        // Fetch user info to check role
+        const userRes = await fetch("http://localhost:9000/auth/aUser", {
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          if (userData.role === "ADMIN") {
+            navigate("/ViewUsers");
+          } else {
+            setError("You are not authorized as admin.");
+          }
+        } else {
+          setError("Failed to fetch user info.");
+        }
       } else {
-        alert("Invalid credentials");
+        setError("Invalid credentials");
       }
     } catch (error) {
-      console.error("Error during login:", error);
-      alert("An error occurred: " + error.message);
+      setError("An error occurred: " + error.message);
     }
   };
 
@@ -44,12 +58,10 @@ function LoginPage() {
         <img src="/image/frontIcon.png" alt="Illustration" />
       </div>
       <div className={styles.formSection}>
-        <h2>Diagram Software</h2>
-        <p>Your all in one solution for crafting stunning diagrams online!</p>
-
+        <h2>Admin Login</h2>
+        <p>Login as admin to manage users.</p>
         <form onSubmit={handleSubmit}>
           <img src="/image/logo2.png" alt="Logo" className={styles.logoImage} />
-
           <div className={styles.inputGroup}>
             <input
               type="email"
@@ -59,7 +71,6 @@ function LoginPage() {
               required
             />
           </div>
-
           <div className={styles.inputGroup}>
             <input
               type={isPasswordVisible ? "text" : "password"}
@@ -75,36 +86,20 @@ function LoginPage() {
               onClick={togglePasswordVisibility}
             />
           </div>
-
+          {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
           <button type="submit" className={styles.loginButton}>
-            Log in
+            Admin Log in
           </button>
         </form>
-
-        <div className={styles.loginDivider}>OR</div>
-
-        <div className={styles.socialLogin}>
-          <button className={styles.googleButton}>
-            <img src="/image/google icone 2.png" alt="Google" /> Google
-          </button>
-        </div>
-
-        <p className={styles.smallText}>
-          <a href="/ForgotPassword">Forgot password?</a>
-        </p>
-        <p className={styles.smallText}>
-          Don't have an account? <a href="/register">Sign up</a>
-        </p>
         <button
-          style={{ marginTop: 8, fontSize: "0.9rem", background: "none", border: "none", color: "#348983", cursor: "pointer", textDecoration: "underline" }}
-          type="button"
-          onClick={() => window.location.href = "/AdminLogin"}
+          style={{ marginTop: 16, fontSize: "0.9rem", background: "none", border: "none", color: "#348983", cursor: "pointer", textDecoration: "underline" }}
+          onClick={() => navigate("/login")}
         >
-          Admin Login
+          Back to User Login
         </button>
       </div>
     </div>
   );
 }
 
-export default LoginPage;
+export default AdminLoginPage; 

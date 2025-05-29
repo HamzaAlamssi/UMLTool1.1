@@ -15,7 +15,7 @@ function TemplateCard({ template }) {
       });
       if (!userRes.ok) throw new Error("Not authenticated");
       const userData = await userRes.json();
-      const email = userData.username;
+      const email = userData.email;
 
       // Create project from template
       const res = await fetch(

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ProjectContext = createContext();
 
@@ -13,18 +14,37 @@ export function ProjectProvider({ children }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // List of public routes
+  const publicRoutes = ["/login", "/register", "/ForgotPassword", "/AdminLogin"];
 
   // Fetch user info
   useEffect(() => {
-    
+    // Only fetch user if not on a public route
+    if (publicRoutes.includes(location.pathname)) return;
+
     fetch("http://localhost:9000/auth/aUser", {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
     })
-      .then((res) => (res.ok ? res.json() : Promise.reject("Not authenticated")))
-      .then(setUser)
-      .catch((err) => setError(err.message || err.toString()));
-  }, []);
+      .then((res) => {
+        if (res.status === 401) {
+          navigate("/login", { replace: true });
+          throw new Error("Not authenticated");
+        }
+        return res.ok ? res.json() : Promise.reject("Not authenticated");
+      })
+      .then((userData) => {
+        console.log("[ProjectContext] Fetched user info:", userData);
+        setUser(userData);
+      })
+      .catch((err) => {
+        setError(err.message || err.toString());
+        // Already navigated above if 401
+      });
+  }, [navigate, location.pathname]);
 
   // Fetch projects, shared projects, and templates
   const fetchAll = useCallback(() => {
