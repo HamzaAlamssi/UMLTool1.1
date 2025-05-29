@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import styles from "../components/styles/user-pages/NewProfilePage.module.css";
+import { useProjects } from "../context/ProjectContext";
 
 const occupationOptions = [
   "Student",
@@ -10,17 +11,16 @@ const occupationOptions = [
 ];
 
 const NewProfilePage = () => {
+  const { user, refresh } = useProjects();
   const [profileImage, setProfileImage] = useState("");
   const [editStates, setEditStates] = useState({
     firstName: false,
     lastName: false,
-    email: false,
     username: false,
   });
   const [fields, setFields] = useState({
     firstName: "",
     lastName: "",
-    email: "",
     occupation: "",
     username: "",
     password: "********",
@@ -30,39 +30,23 @@ const NewProfilePage = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:9000/auth/aUser", {
+    if (!user || !user.email) return;
+    fetch(`http://localhost:9000/api/users/${encodeURIComponent(user.email)}`, {
       credentials: "include",
     })
-      .then((res) =>
-        res.ok ? res.json() : Promise.reject(new Error("Not authenticated"))
-      )
-      .then((user) => {
-        fetch(
-          `http://localhost:9000/api/users/${encodeURIComponent(
-            user.username
-          )}`,
-          {
-            credentials: "include",
-          }
-        )
-          .then((r) =>
-            r.ok ? r.json() : Promise.reject(new Error("User not found"))
-          )
-          .then((data) => {
-            setFields({
-              firstName: data.firstName || "",
-              lastName: data.lastName || "",
-              email: data.email || "",
-              occupation: data.occupation || "",
-              username: data.username || "",
-              password: "********",
-            });
-            setProfileImage(data.profileImage || "");
-          })
-          .catch((err) => setError(err.message));
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("User not found"))))
+      .then((data) => {
+        setFields({
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          occupation: data.occupation || "",
+          username: data.username || "",
+          password: "********",
+        });
+        setProfileImage(data.profileImage || "");
       })
       .catch((err) => setError(err.message));
-  }, []);
+  }, [user]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -74,51 +58,44 @@ const NewProfilePage = () => {
   };
 
   const toggleEdit = (field) => {
-    setEditStates((prev) => {
-      const isEditing = !prev[field];
-      if (!isEditing) {
-        handleSaveField(field, fields[field]);
-      }
-      return { ...prev, [field]: isEditing };
-    });
+    setEditStates((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const handleFieldChange = (field, value) => {
     setFields((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveField = (field, value) => {
-    setError("");
-    setSuccess("");
-    if (field === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-    if (field === "username" && (!value || value.length < 3)) {
-      setError("Username must be at least 3 characters");
-      return;
-    }
-    handleSave();
-  };
-
   const handleSave = async () => {
     setError("");
     setSuccess("");
+    if (!user || !user.email) {
+      setError("User not loaded");
+      return;
+    }
     try {
+      const payload = {
+        email: user.email,
+        username: fields.username,
+        firstName: fields.firstName,
+        lastName: fields.lastName,
+        occupation: fields.occupation,
+        profileImage,
+      };
       const res = await fetch(
-        `http://localhost:9000/api/users/${encodeURIComponent(fields.email)}`,
+        `http://localhost:9000/api/users/${encodeURIComponent(user.email)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ ...fields, profileImage }),
+          body: JSON.stringify(payload),
         }
       );
       if (res.ok) {
         setSuccess("Profile updated successfully!");
-      } else if (res.status === 400) {
+        if (typeof refresh === "function") refresh();
+      } else if (res.status === 400 || res.status === 409) {
         const data = await res.json();
-        setError(Object.values(data).join(" "));
+        setError(data.error || Object.values(data).join(" "));
       } else {
         setError(await res.text());
       }
@@ -127,11 +104,29 @@ const NewProfilePage = () => {
     }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (!user || !user.email) return;
     const newPassword = window.prompt("Enter your new password:");
     if (newPassword && newPassword.length >= 8) {
-      setSuccess("Password changed successfully");
-      setFields((prev) => ({ ...prev, password: "********" }));
+      try {
+        const res = await fetch(
+          `http://localhost:9000/api/users/${encodeURIComponent(user.email)}/password`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ newPassword }),
+          }
+        );
+        if (res.ok) {
+          setSuccess("Password changed successfully");
+          setFields((prev) => ({ ...prev, password: "********" }));
+        } else {
+          setError("Failed to change password");
+        }
+      } catch (err) {
+        setError("Failed to change password");
+      }
     } else if (newPassword) {
       setError("Password must be at least 8 characters");
     }
@@ -161,14 +156,13 @@ const NewProfilePage = () => {
         {[
           { label: "First Name", field: "firstName" },
           { label: "Last Name", field: "lastName" },
-          { label: "Email Address", field: "email" },
           { label: "Username", field: "username" },
         ].map(({ label, field }) => (
           <div className={styles.inputGroup} key={field}>
             <label className={styles.inputLabel}>{label}</label>
             <div className={styles.inputRow}>
               <input
-                type={field === "email" ? "email" : "text"}
+                type="text"
                 className={styles.editableField}
                 value={fields[field]}
                 disabled={!editStates[field]}
@@ -183,6 +177,16 @@ const NewProfilePage = () => {
             </div>
           </div>
         ))}
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>Email Address</label>
+          <input
+            type="email"
+            className={styles.editableField}
+            value={user?.email || ""}
+            disabled
+            readOnly
+          />
+        </div>
         <div className={styles.inputGroup}>
           <label className={styles.inputLabel}>Occupation</label>
           <select

@@ -13,7 +13,8 @@ public abstract class User {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) // Use AUTO instead of IDENTITY for TABLE_PER_CLASS
+    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private Long id;
 
     @Column(name = "email", unique = true)

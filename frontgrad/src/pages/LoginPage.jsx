@@ -86,14 +86,8 @@ function LoginPage() {
         <div className={styles.loginDivider}>OR</div>
 
         <div className={styles.socialLogin}>
-          <button>
+          <button className={styles.googleButton}>
             <img src="/image/google icone 2.png" alt="Google" /> Google
-          </button>
-          <button>
-            <img src="/image/microsoft.png" alt="Microsoft" /> Microsoft
-          </button>
-          <button>
-            <img src="/image/GitHub.png" alt="GitHub" /> GitHub
           </button>
         </div>
 
@@ -103,6 +97,13 @@ function LoginPage() {
         <p className={styles.smallText}>
           Don't have an account? <a href="/register">Sign up</a>
         </p>
+        <button
+          style={{ marginTop: 8, fontSize: "0.9rem", background: "none", border: "none", color: "#348983", cursor: "pointer", textDecoration: "underline" }}
+          type="button"
+          onClick={() => window.location.href = "/AdminLogin"}
+        >
+          Admin Login
+        </button>
       </div>
     </div>
   );

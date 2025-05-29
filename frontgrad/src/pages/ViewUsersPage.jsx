@@ -14,7 +14,9 @@ const ViewUsersPage = () => {
     setError("");
     try {
       const url = query
-        ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(query)}`
+        ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
+          query
+        )}`
         : "http://localhost:9000/api/users";
       const res = await fetch(url, { credentials: "include" });
       if (res.ok) {
@@ -122,6 +124,7 @@ const ViewUsersPage = () => {
               </div>
             ) : (
               <div className={styles.usersGrid}>
+
                 {users
                   .reduce((rows, user, idx) => {
                     if (idx % 2 === 0) rows.push([]);

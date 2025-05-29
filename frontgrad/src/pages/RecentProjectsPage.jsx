@@ -1,58 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import ProjectCard from "../components/ProjectCard";
 import styles from "../components/styles/user-pages/RecentProjectsPage.module.css";
 import { useNavigate } from "react-router-dom";
+import { useProjects } from "../context/ProjectContext";
 
-// Simple ProjectCard component
 function RecentProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [error, setError] = useState("");
+  const { projects, error, deleteProject, updateProjectName } = useProjects();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Fetch current user info from backend
-    fetch("http://localhost:9000/auth/aUser", {
-      method: "GET",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) =>
-        res.ok ? res.json() : Promise.reject(new Error("Not authenticated"))
-      )
-      .then((userData) => {
-        const email = userData.username;
-        return fetch(
-          `http://localhost:9000/api/projects/own?email=${encodeURIComponent(
-            email
-          )}`,
-          { credentials: "include" }
-        );
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch projects");
-        return res.json();
-      })
-      .then((data) => setProjects(Array.isArray(data) ? data : []))
-      .catch((err) => setError(err.message || "Failed to fetch projects"));
-  }, []);
 
   const handleCardClick = (projectId) => {
     navigate(`/project/${projectId}`);
   };
 
-  const handleDeleteProject = (projectId) => {
-    fetch(`http://localhost:9000/api/projects/${projectId}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to delete project");
-        setProjects((prev) => prev.filter((p) => p.id !== projectId));
-      })
-      .catch((err) => setError(err.message || "Failed to delete project"));
-  };
+  // Sort by updatedAt/createdAt desc
+  const sortedProjects = [...(projects || [])]
+    .sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return bTime - aTime;
+    });
 
   return (
     <div className={styles.pageWrapper}>
@@ -65,15 +33,18 @@ function RecentProjectsPage() {
           <div className={styles.cardsContainer}>
             {error ? (
               <div style={{ color: "red" }}>{error}</div>
-            ) : projects.length === 0 ? (
+            ) : sortedProjects.length === 0 ? (
               <div>No projects found.</div>
             ) : (
-              projects.map((project) => (
+              sortedProjects.map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
                   onClick={handleCardClick}
-                  onDelete={handleDeleteProject}
+                  onDelete={deleteProject}
+                  showDelete={true}
+                  onUpdateName={updateProjectName}
+                  showMore={true}
                 />
               ))
             )}

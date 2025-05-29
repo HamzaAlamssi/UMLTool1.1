@@ -37,9 +37,10 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
       } else {
         console.error("Server returned error:", res.status);
       }
-    } catch (e) {
+
+    } catch (e) { 
       console.error("Error fetching messages:", e);
-    } finally {
+       } finally {
       setLoading(false);
     }
   }, [projectId]);

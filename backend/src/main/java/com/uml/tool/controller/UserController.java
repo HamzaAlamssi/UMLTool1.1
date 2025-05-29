@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestController
@@ -45,12 +46,36 @@ public class UserController {
         return toDTO(saved);
     }
 
-    @PutMapping("/{username}")
-    public ResponseEntity<?> updateUser(@PathVariable String username, @Valid @RequestBody UserUpdateDTO dto) {
+    @PutMapping("/{email}")
+    public ResponseEntity<?> updateUser(@PathVariable String email, @Valid @RequestBody UserUpdateDTO dto) {
         try {
-            UserLoginDetails existing = userService.getByUsername(username).orElse(null);
-            if (existing == null) {
-                return ResponseEntity.status(404).body("{\"error\":\"User not found\"}");
+            if (dto.getUsername() != null) {
+                userService.getByUsername(dto.getUsername()).ifPresent(existingUser -> {
+                    if (!existingUser.getEmail().equals(email)) {
+                        throw new RuntimeException("Username already exists");
+                    }
+                });
+            }
+            if (dto.getEmail() != null) {
+                userService.getByEmail(dto.getEmail()).ifPresent(existingUser -> {
+                    if (!existingUser.getEmail().equals(email)) {
+                        throw new RuntimeException("Email already exists");
+                    }
+                });
+            }
+            UserLoginDetails updated = new UserLoginDetails();
+            updated.setEmail(dto.getEmail());
+            updated.setUsername(dto.getUsername());
+            updated.setFirstName(dto.getFirstName());
+            updated.setLastName(dto.getLastName());
+            updated.setOccupation(dto.getOccupation());
+            updated.setProfileImage(dto.getProfileImage());
+            UserLoginDetails saved = userService.updateUserProfile(email, updated);
+            return ResponseEntity.ok().body(saved);
+        } catch (RuntimeException ex) {
+            String msg = ex.getMessage();
+            if ("Username already exists".equals(msg) || "Email already exists".equals(msg)) {
+                return ResponseEntity.status(409).body("{\"error\":\"" + msg + "\"}");
             }
             // Only update email if provided (for password reset/notifications)
             if (dto.getEmail() != null) {

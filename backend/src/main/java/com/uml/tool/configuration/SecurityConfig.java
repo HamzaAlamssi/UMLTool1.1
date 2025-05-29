@@ -36,8 +36,12 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
-
-                    registry.requestMatchers("/auth/**", "auth/login", "auth/register", "/error").permitAll();
+                    registry.requestMatchers(
+                            "/auth/**",
+                            "auth/login",
+                            "auth/register",
+                            "/api/admin/add-admin",
+                            "/error").permitAll();
                     registry.anyRequest().authenticated();
 
                     // }).formLogin(httpSecurityFormLoginConfigurer -> {

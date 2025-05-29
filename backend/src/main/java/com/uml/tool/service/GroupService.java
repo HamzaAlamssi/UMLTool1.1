@@ -39,18 +39,27 @@ public class GroupService {
                 .project(project)
                 .build();
 
+        if (request.getMembers() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Members list cannot be null");
+        }
+
         List<GroupMember> members = new ArrayList<>();
         for (GroupMemberRequest memberReq : request.getMembers()) {
-            UserLoginDetails user = userRepository.findByUsername(memberReq.getUsername())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found: " + memberReq.getUsername()));
+            UserLoginDetails user = userRepository.findByEmail(memberReq.getEmail())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "User not found: " + memberReq.getEmail()));
+
             GroupMember.Permission perm;
             try {
                 perm = GroupMember.Permission.valueOf(memberReq.getPermission());
             } catch (Exception e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid permission: " + memberReq.getPermission());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid permission: " + memberReq.getPermission());
             }
             // Don't add owner as member
-            if (user.getUsername().equals(project.getOwner().getUsername())) continue;
+            if (user.getEmail().equals(project.getOwner().getEmail()))
+                continue;
+
             GroupMember member = GroupMember.builder()
                     .group(group)
                     .user(user)

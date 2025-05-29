@@ -33,8 +33,16 @@ public class UserService {
         userRepository.deleteById(username);
     }
 
-    public UserLoginDetails updateUserProfile(String username, UserLoginDetails updated) {
-        return userRepository.findByUsername(username).map(user -> {
+    public boolean deleteUserByEmailWithResult(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            return false;
+        }
+        userRepository.deleteByEmail(email);
+        return true;
+    }
+
+    public UserLoginDetails updateUserProfile(String email, UserLoginDetails updated) {
+        return userRepository.findByEmail(email).map(user -> {
             user.setFirstName(updated.getFirstName());
             user.setLastName(updated.getLastName());
             user.setOccupation(updated.getOccupation());
@@ -48,6 +56,14 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
         });
+    }
+
+    public boolean changePasswordWithResult(String email, String newPassword) {
+        return userRepository.findByEmail(email).map(user -> {
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return true;
+        }).orElse(false);
     }
 
     public List<UserLoginDetails> searchUsers(String query) {

@@ -193,8 +193,7 @@ body {
 }
 .visibility-select option {
     padding: 4px;
-}
-`;
+}`;
 const styles = {
   container: {
     display: 'flex', // Add flex display
@@ -1512,13 +1511,13 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       }
       if (mx >= deleteIcon.x && mx <= deleteIcon.x + deleteIcon.w && my >= deleteIcon.y && my <= deleteIcon.y + deleteIcon.h) {
         setClasses(prev => prev.filter(c => c.id !== obj.id));
-        setRelationships(prev => prev.filter(r => r.fromId !== obj.id && r.toId !== obj.id));
-        sendUmlAction({
-          type: 'delete',
-          elementType: 'class',
-          payload: obj,
-          projectId,
-        });
+        setRelationships(prev => prev.filter(r => r.id !== rel.id)); // Filter by ID
+sendUmlAction({
+  type: 'delete',
+  elementType: 'relationship',
+  payload: rel, // Ensure rel includes id
+  projectId,
+});
         return;
       }
     }
@@ -1576,7 +1575,12 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
             return;
           } else if (!isSelfRelation) {
             // Only prevent self-relationship for non-customlabel types
-            const newRelationship = { fromId: pendingRelation.fromId, toId: obj.id, type: pendingRelation.type };
+            const newRelationship = { 
+              id: generateRelationshipId(), // Add ID
+              fromId: pendingRelation.fromId, 
+              toId: obj.id, 
+              type: pendingRelation.type 
+            };
             setRelationships(prev => [...prev, newRelationship]);
             sendUmlAction({
               type: 'add',
@@ -2146,6 +2150,11 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return "cls" + (classIdCounter++);
   }
+  let relationshipIdCounter = 1;
+function generateRelationshipId() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "rel" + (relationshipIdCounter++);
+}
 
   function UmlClass(x, y, name = "ClassName") {
     return {
@@ -2381,6 +2390,88 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
 
   const [, setGeneratedCode] = useState('');
 
+  const [showJavaImport, setShowJavaImport] = useState(false);
+  const [javaCodeInput, setJavaCodeInput] = useState('');
+
+  function parseJavaCode(code) {
+  const classes = [];
+  const relationships = [];
+  
+  // Split code into individual class declarations
+  const classBlocks = code.split(/(?=public\s+class|private\s+class|protected\s+class|class)/g);
+  
+  classBlocks.forEach(block => {
+    // Extract class declaration
+    const classMatch = block.match(/class\s+(\w+)(?:\s+extends\s+(\w+))?/);
+    if (!classMatch) return;
+    
+    const className = classMatch[1];
+    const parentClass = classMatch[2];
+    const classBody = block.slice(classMatch.index + classMatch[0].length);
+    
+    // Create new class
+    const newClass = {
+      id: `cls_${className}`,
+      type: 'class',
+      name: className,
+      x: 100 + classes.length * 300,
+      y: 100,
+      width: 200,
+      height: 150,
+      attributes: [],
+      methods: []
+    };
+    
+    // Add inheritance relationship
+    if (parentClass) {
+      relationships.push({
+        fromId: newClass.id,
+        toId: `cls_${parentClass}`,
+        type: 'inheritance'
+      });
+    }
+    
+    // Parse fields scoped to this class
+    const fieldRegex = /(public|private|protected)\s+([\w<>]+)\s+(\w+)\s*;/g;
+    let fieldMatch;
+    while ((fieldMatch = fieldRegex.exec(classBody)) !== null) {
+      newClass.attributes.push({
+        name: `${fieldMatch[3]}: ${fieldMatch[2]}`,
+        visibility: fieldMatch[1].toLowerCase()
+      });
+    }
+    
+    // Parse methods scoped to this class
+    // In the method parsing section:
+const methodRegex = /(public|private|protected)\s+([\w<>]+)\s+(\w+)\s*\(([^)]*)\)/g;
+let methodMatch;
+while ((methodMatch = methodRegex.exec(classBody)) !== null) {
+  const params = methodMatch[4]
+    .split(',')
+    .map(p => p.trim())
+    .filter(p => p)
+    .map(p => {
+      const parts = p.split(/\s+/).filter(Boolean);
+      return {
+        name: parts[1] || 'param',
+        type: parts[0] || 'Object'
+      };
+    });
+
+  const paramString = params.map(p => `${p.name}: ${p.type}`).join(', ');
+  
+  newClass.methods.push({
+    name: `${methodMatch[3]}${params.length ? `(${paramString})` : '()'}: ${methodMatch[2]}`,
+    visibility: methodMatch[1].toLowerCase()
+  });
+}
+    
+    classes.push(newClass);
+  });
+  
+  return { classes, relationships };
+}
+
   function generateJavaCode(classes, relationships) {
     const visibilityMap = {
       'public': 'public',
@@ -2488,6 +2579,18 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       value: code,
     });
   }
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(modal.value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      alert('Failed to copy code. Please copy manually.');
+    }
+  };
   
 
   // === Render ===
@@ -2511,6 +2614,9 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
             <div className="toolbar-group">
               <button className="toolbar-btn-generate" onClick={handleGenerateCode}>
               Generate Java Code
+              </button>
+              <button className="toolbar-btn-generate" onClick={() => setShowJavaImport(true)} >
+              Java Code to Class Diagram
               </button>
             </div>
             <div className="toolbar-group">
@@ -2561,8 +2667,6 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
                 <option value="include">Include</option>
                 <option value="extend">Extend</option>
                 <option value="activity">Activity Flow</option>
-                <option value="provided">Provided</option>
-                <option value="required">Required</option>
                 <option value="customlabel">Communication Message </option>
               </select>
             </div>
@@ -2587,13 +2691,31 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
 {modal.open && (
   <div style={styles.modalOverlay} onClick={closeModal}>
     <div style={styles.modal} onClick={e => e.stopPropagation()}>
-      <span style={{ 
-        fontWeight: 'bold', 
-        fontSize: 18, 
-        marginBottom: modal.title === 'Generated Java Code' ? 12 : 0 
+      {/* Copy Button Header */}
+      <div style={{ 
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12
       }}>
-        {modal.title}
-      </span>
+        <span style={{ fontWeight: 'bold', fontSize: 18 }}>{modal.title}</span>
+        {modal.title === 'Generated Java Code' && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {copied && <span style={{ color: '#2fa84f', fontSize: 14 }}>Copied!</span>}
+            <button 
+              style={{ 
+                ...styles.button, 
+                padding: '6px 14px',
+                fontSize: 14,
+                background: '#2fa84f'
+              }}
+              onClick={handleCopyCode}
+            >
+              Copy
+            </button>
+          </div>
+        )}
+      </div>
 
       {modal.title === 'Generated Java Code' ? (
         <pre style={{
@@ -2723,6 +2845,50 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
     </div>
   </div>
         )}
+        {/* Java Import Modal */}
+{showJavaImport && (
+  <div style={styles.modalOverlay} onClick={() => setShowJavaImport(false)}>
+    <div style={styles.modal} onClick={e => e.stopPropagation()}>
+      <span style={{ fontWeight: 'bold', fontSize: 18 }}>Import Java Code</span>
+      <textarea
+        style={{ 
+          ...styles.input, 
+          height: '300px', 
+          fontFamily: 'monospace',
+          whiteSpace: 'pre',
+          margin: '12px 0' 
+        }}
+        value={javaCodeInput}
+        onChange={e => setJavaCodeInput(e.target.value)}
+        placeholder="Paste Java classes here..."
+      />
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button
+          style={styles.button}
+          onClick={() => {
+            try {
+              const parsed = parseJavaCode(javaCodeInput);
+              setClasses(prev => [...prev, ...parsed.classes]);
+              setRelationships(prev => [...prev, ...parsed.relationships]);
+              setShowJavaImport(false);
+              setJavaCodeInput('');
+            } catch (e) {
+              alert('Error parsing Java code: ' + e.message);
+            }
+          }}
+        >
+          Import
+        </button>
+        <button 
+          style={{ ...styles.button, background: '#bbb' }} 
+          onClick={() => setShowJavaImport(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
         </div>
       </>
   );

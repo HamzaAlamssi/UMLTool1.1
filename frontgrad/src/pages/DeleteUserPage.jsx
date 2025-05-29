@@ -17,8 +17,8 @@ const DeleteUserPage = () => {
     try {
       const url = query
         ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-            query
-          )}`
+          query
+        )}`
         : "http://localhost:9000/api/users";
       const res = await fetch(url, { credentials: "include" });
       if (res.ok) {

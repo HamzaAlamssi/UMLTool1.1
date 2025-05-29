@@ -1,33 +1,46 @@
 .projectCard {
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
+  border: 1.5px solid #e0e7ef;
+  border-radius: 1.1rem;
+  padding: 1.4rem 1.2rem 1.2rem 1.2rem;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 24px rgba(52, 137, 131, 0.08);
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.22s, transform 0.22s, border 0.18s;
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  align-items: center;
+  min-width: 220px;
+  max-width: 260px;
+  text-align: center;
 }
 
 .projectCard:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(52, 137, 131, 0.16);
+  transform: translateY(-5px) scale(1.035);
+  border: 1.5px solid #348983;
+  background: #f7fafb;
 }
 
 .cardHeader {
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-bottom: 0.5rem;
 }
 
 .projectTitle {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #22645c;
   margin: 0;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .deleteBtn {
@@ -48,10 +61,112 @@
   color: #b71c1c;
 }
 
+.typeBadge {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.18rem 0.7rem;
+  background: #e6f2f1;
+  color: #348983;
+  border-radius: 0.7rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Remove old .projectInfo styles */
 .projectInfo {
+  display: none;
+}
+
+.ownerName {
+  margin-top: 0.5rem;
+  font-size: 1.08rem;
+  color: #348983;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0.95;
+}
+
+.moreBtn {
+  background: none;
+  border: none;
+  margin-left: 0.3rem;
+  cursor: pointer;
+  color: #348983;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  transition: background 0.18s;
+}
+.moreBtn:hover {
+  background: #e6f2f1;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(52, 137, 131, 0.13);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContent {
+  background: #fff;
+  padding: 2rem 2.2rem 1.5rem 2.2rem;
+  border-radius: 1.1rem;
+  box-shadow: 0 4px 32px rgba(52, 137, 131, 0.13);
+  min-width: 320px;
+  max-width: 95vw;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  align-items: stretch;
+}
+
+.input {
+  font-size: 1.1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  border: 1.5px solid #e0e7ef;
+  margin: 0.7rem 0 1.1rem 0;
+  background: #f7fafb;
+  transition: border 0.18s;
+}
+.input:focus {
+  border: 1.5px solid #348983;
+  outline: none;
+}
+
+.error {
+  color: #c0392b;
   font-size: 0.98rem;
-  color: #444;
+  margin-bottom: 0.7rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1.1rem;
+  justify-content: flex-end;
+}
+.modalActions button {
+  font-size: 1rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.7rem;
+  border: none;
+  background: #e6f2f1;
+  color: #22645c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.modalActions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.modalActions button:last-child {
+  background: #348983;
+  color: #fff;
+}
+.modalActions button:last-child:hover:not(:disabled) {
+  background: #22645c;
 }

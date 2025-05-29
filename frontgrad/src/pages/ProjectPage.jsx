@@ -53,12 +53,14 @@ function ProjectPage() {
       });
   }, [projectId]);
 
+
   useEffect(() => {
-    fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        setCurrentUser(data && data.username ? data : null);
-      });
+  fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      console.log("Fetched currentUser:", data);
+      setCurrentUser(data);
+    });
   }, []);
 
   return (

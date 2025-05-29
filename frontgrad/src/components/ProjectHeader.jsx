@@ -13,12 +13,17 @@ import {
 import { FaSlideshare } from "react-icons/fa";
 import { TbMessageChatbot } from "react-icons/tb";
 import { FiUser } from "react-icons/fi";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import styles from "./styles/components-styles/ProjectHeader.module.css";
+import stylesHeader from "./styles/components-styles/Header.module.css";
+
+import { useProjects } from "../context/ProjectContext";
 
 const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
   const fileInputRef = useRef(null);
   const { id: projectId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useProjects();
 
   // Export canvas model as JSON (same as yaqeen.jsx)
   const exportDiagram = () => {
@@ -109,7 +114,7 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
   return (
     <header className={styles.header}>
       <div className={styles.leftSection}>
-        {/* Modern logo area */}
+        {/* Static logo image, clickable to /main */}
         <div
           style={{
             width: 44,
@@ -121,9 +126,13 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
             justifyContent: "center",
             boxShadow: "0 2px 8px rgba(52, 137, 131, 0.10)",
             marginRight: "0.7rem",
+            cursor: "pointer",
+            overflow: "hidden",
           }}
+          onClick={() => navigate("/main")}
+          title="Go to Main Page"
         >
-          <MdInsertDriveFile size={28} color="#fff" />
+          <img src="/image/white_logo.png" className={stylesHeader.logo} alt="Logo" />
         </div>
         {/* File dropdown (keep for New/Open) */}
         <div className={styles.dropdown}>
@@ -197,7 +206,7 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
         <button className={styles.grayBtn} onClick={onMessagesClick}>
           <TbMessageChatbot style={{ marginRight: 4 }} /> Messages
         </button>
-        {/* User avatar */}
+        {/* User avatar in right section */}
         <div
           style={{
             height: "2.3rem",
@@ -210,9 +219,18 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick }) => {
             justifyContent: "center",
             marginLeft: "0.7rem",
             boxShadow: "0 2px 8px rgba(52, 137, 131, 0.10)",
+            overflow: "hidden",
           }}
         >
-          <FiUser size={22} color="#348983" />
+          {user?.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt="User Avatar"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <FiUser size={22} color="#348983" />
+          )}
         </div>
       </div>
     </header>
