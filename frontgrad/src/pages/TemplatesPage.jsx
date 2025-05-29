@@ -1,41 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../components/styles/user-pages/TemplatesPage.module.css";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import TemplateCard from "../components/TemplateCard";
+import { useProjects } from "../context/ProjectContext";
 
 function TemplatesPage() {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [previousActiveLink, setPreviousActiveLink] = useState(null);
-  const [templates, setTemplates] = useState([]);
+  const { templates, error } = useProjects();
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  const [previousActiveLink, setPreviousActiveLink] = React.useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetch("http://localhost:9000/auth/aUser", {
-      method: "GET",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((response) =>
-        response.ok
-          ? response.json()
-          : Promise.reject(new Error("Not authenticated"))
-      )
-      .then((data) => setUser(data))
-      .catch((err) => setError(err.message || err.toString()));
-  }, []);
-
-  useEffect(() => {
-    fetch("http://localhost:9000/api/templates", {
-      credentials: "include",
-    })
-      .then((res) => (res.ok ? res.json() : Promise.reject("Failed to fetch templates")))
-      .then((data) => setTemplates(Array.isArray(data) ? data : []))
-      .catch((err) => setError(err.message || err.toString()));
-  }, []);
 
   const handleLogOutClick = () => {
     const active = document.querySelector(".link-list a.active");
@@ -45,30 +20,8 @@ function TemplatesPage() {
     setShowLogoutModal(true);
   };
 
-  useEffect(() => {
-    const navLinks = document.querySelectorAll(".link-list a");
-    const handleLinkClick = function () {
-      if (
-        !this.classList.contains("new") &&
-        !this.classList.contains("logout")
-      ) {
-        navLinks.forEach((link) => {
-          if (!link.classList.contains("logout"))
-            link.classList.remove("active");
-        });
-        this.classList.add("active");
-      }
-    };
-    navLinks.forEach((link) => link.addEventListener("click", handleLinkClick));
-    return () => {
-      navLinks.forEach((link) =>
-        link.removeEventListener("click", handleLinkClick)
-      );
-    };
-  }, []);
-
-  const designPatternTemplates = templates.filter(t => t.type === "design pattern");
-  const customizedTemplates = templates.filter(t => t.type === "customized");
+  const designPatternTemplates = (templates || []).filter(t => t.type === "design pattern");
+  const customizedTemplates = (templates || []).filter(t => t.type === "customized");
 
   return (
     <div className={styles.pageWrapper}>
@@ -76,10 +29,13 @@ function TemplatesPage() {
       <div className={styles.layout}>
         <Sidebar onLogout={handleLogOutClick} />
         <main className={styles.mainContent}>
-          <h2 className={styles.title}>Templates</h2>
+          <section className={styles.heroSection}>
+            <h1 className={styles.heroTitle}>Find Your Perfect Template</h1>
+            <p className={styles.heroDesc}>Browse ready-made design patterns or start from your own customized templates. Click any card to start a new project instantly!</p>
+          </section>
           <div className={styles.underline} />
           {error && <p className={styles.error}>{error}</p>}
-          <div className={styles.section}>
+          <section className={styles.section}>
             <h3 className={styles.fixedTitle}>Design Pattern Templates</h3>
             <div className={styles.cardsContainer}>
               {designPatternTemplates.length === 0 && <div>No design pattern templates found.</div>}
@@ -87,16 +43,16 @@ function TemplatesPage() {
                 <TemplateCard key={tpl.id} template={tpl} />
               ))}
             </div>
-          </div>
-          <div className={styles.section}>
-            <h3 className={styles.fixedTitle}>Customized Templates</h3>
+          </section>
+          <section className={styles.section}>
+            <h3 className={styles.fixedTitle}>Your Templates</h3>
             <div className={styles.cardsContainer}>
               {customizedTemplates.length === 0 && <div>No customized templates found.</div>}
               {customizedTemplates.map((tpl) => (
-                <TemplateCard key={tpl.id} template={tpl} />
+                <TemplateCard key={tpl.id} template={{...tpl, type: undefined}} />
               ))}
             </div>
-          </div>
+          </section>
           {/* Logout Modal */}
           {showLogoutModal && (
             <div className={styles.logoutModalOverlay}>

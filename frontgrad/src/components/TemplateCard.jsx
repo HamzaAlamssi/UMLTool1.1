@@ -36,9 +36,11 @@ function TemplateCard({ template }) {
   return (
     <div className={styles.templateCard} onClick={handleClick} style={{ cursor: "pointer" }}>
       <h3>{template.name}</h3>
-      <div>
-        <span className={styles.templateType}>{template.type}</span>
-      </div>
+      {template.type && (
+        <div>
+          <span className={styles.templateType}>{template.type}</span>
+        </div>
+      )}
     </div>
   );
 }

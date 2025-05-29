@@ -84,14 +84,8 @@ function LoginPage() {
         <div className={styles.loginDivider}>OR</div>
 
         <div className={styles.socialLogin}>
-          <button>
+          <button className={styles.googleButton}>
             <img src="/image/google icone 2.png" alt="Google" /> Google
-          </button>
-          <button>
-            <img src="/image/microsoft.png" alt="Microsoft" /> Microsoft
-          </button>
-          <button>
-            <img src="/image/GitHub.png" alt="GitHub" /> GitHub
           </button>
         </div>
 

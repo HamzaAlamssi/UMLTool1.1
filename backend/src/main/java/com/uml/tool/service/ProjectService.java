@@ -77,4 +77,12 @@ public class ProjectService {
     public Project saveProject(Project project) {
         return projectRepository.save(project);
     }
+
+    public void updateProjectName(Long projectId, String newName) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+        project.setName(newName);
+        project.setUpdatedAt(LocalDateTime.now());
+        projectRepository.save(project);
+    }
 }

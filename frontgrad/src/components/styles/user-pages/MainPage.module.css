@@ -118,7 +118,9 @@
   border-radius: 1.2rem 0 0 0;
   box-shadow: 0 2px 24px rgba(52, 137, 131, 0.06);
   position: relative;
-  padding-top: 90px; /* add space for fixed header */
+  padding-top: 90px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 /* Header */
@@ -215,17 +217,24 @@
 .mainHeader {
   width: 100%;
   max-width: 1200px;
-  margin: 2.2rem auto 1.2rem auto;
+  margin: 2.8rem auto 1.7rem auto;
   text-align: left;
-  border-bottom: 2.5px solid #e6f2f1;
+  border-bottom: none;
   padding-bottom: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: linear-gradient(90deg, #e0fdfa 60%, #f7fafb 100%);
+  border-radius: 1.2rem;
+  box-shadow: 0 2px 16px rgba(52, 137, 131, 0.07);
+  padding: 2.2rem 2.5rem 1.5rem 2.5rem;
 }
 
 .mainHeader h1 {
-  font-size: 2rem;
-  color: #2d746b;
-  margin: 0 0 0.3rem 0;
-  font-weight: 800;
+  font-size: 2.7rem;
+  color: #22645c;
+  margin: 0 0 0.7rem 0;
+  font-weight: 900;
   letter-spacing: 0.01em;
   text-shadow: 0 2px 8px #e6f2f1;
 }
@@ -233,10 +242,10 @@
 .fixedTitle {
   width: 100%;
   max-width: 1200px;
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   color: #348983;
   margin: 0 0 1.2rem 0;
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
   letter-spacing: 0.01em;
 }
@@ -247,8 +256,9 @@
   max-width: 1200px;
   display: flex;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 .templateCard {
@@ -256,9 +266,9 @@
   border-radius: 1.1rem;
   box-shadow: 0 4px 24px rgba(52, 137, 131, 0.1);
   padding: 1.5rem 1.2rem 1.2rem 1.2rem;
-  flex: 1 1 200px;
-  min-width: 200px;
-  max-width: 240px;
+  flex: 1 1 220px;
+  min-width: 220px;
+  max-width: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -292,6 +302,16 @@
   border-radius: 0.7rem;
   background: #e6f2f1;
   box-shadow: 0 2px 8px rgba(52, 137, 131, 0.07);
+}
+
+.cardsContainer {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-bottom: 2.5rem;
 }
 
 /* Recent Projects */

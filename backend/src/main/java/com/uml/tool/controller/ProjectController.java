@@ -76,4 +76,18 @@ public class ProjectController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Failed to delete project: " + ex.getMessage());
         }
     }
+
+    @PutMapping("/updateName")
+    public ResponseEntity<?> updateProjectName(@RequestParam Long projectId, @RequestBody String newName) {
+        try {
+            // Remove surrounding quotes if present
+            if (newName != null && newName.length() > 1 && newName.startsWith("\"") && newName.endsWith("\"")) {
+                newName = newName.substring(1, newName.length() - 1);
+            }
+            projectService.updateProjectName(projectId, newName);
+            return ResponseEntity.ok().build();
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to update project name: " + ex.getMessage());
+        }
+    }
 }
