@@ -6,7 +6,6 @@ import com.uml.tool.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -27,31 +26,25 @@ public class AdminService {
     }
 
     public UserLoginDetails addUser(UserLoginDetails user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent() ||
-                userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this email or username already exists.");
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this username already exists.");
         }
         user.setRole(UserRoles.USER);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    @Transactional
-    public void deleteUserByEmail(String email) {
-        userRepository.deleteByEmail(email);
-    }
-
     public List<UserLoginDetails> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public Optional<UserLoginDetails> getAdminByEmail(String email) {
-        return userRepository.findByEmail(email)
+    public Optional<UserLoginDetails> getAdminByUsername(String username) {
+        return userRepository.findByUsername(username)
                 .filter(user -> user.getRole() == UserRoles.ADMIN);
     }
 
-    public UserLoginDetails updateAdminProfile(String email, UserLoginDetails updated) {
-        return userRepository.findByEmail(email).map(admin -> {
+    public UserLoginDetails updateAdminProfile(String username, UserLoginDetails updated) {
+        return userRepository.findByUsername(username).map(admin -> {
             admin.setFirstName(updated.getFirstName());
             admin.setLastName(updated.getLastName());
             admin.setUsername(updated.getUsername());
@@ -59,5 +52,9 @@ public class AdminService {
             admin.setProfileImage(updated.getProfileImage());
             return userRepository.save(admin);
         }).orElseThrow();
+    }
+
+    public void deleteUserByUsername(String username) {
+        userRepository.deleteById(username);
     }
 }

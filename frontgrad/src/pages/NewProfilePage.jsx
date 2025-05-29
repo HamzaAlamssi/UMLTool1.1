@@ -216,8 +216,8 @@ const NewProfilePage = () => {
             </button>
           </div>
         </div>
-        {error && <div className={styles.errorMsg}>{error}</div>}
-        {success && <div className={styles.successMsg}>{success}</div>}
+        {error && <div className={styles.errorMessage}>Oops! Something went wrong: {error}</div>}
+        {success && <div className={styles.successMessage}>{success}</div>}
         <div
           style={{
             display: "flex",

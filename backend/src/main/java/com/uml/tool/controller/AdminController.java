@@ -49,9 +49,9 @@ public class AdminController {
         return toDTO(saved);
     }
 
-    @DeleteMapping("/delete-user/{email}")
-    public ResponseEntity<?> deleteUser(@PathVariable String email) {
-        adminService.deleteUserByEmail(email);
+    @DeleteMapping("/delete-user/{username}")
+    public ResponseEntity<?> deleteUser(@PathVariable String username) {
+        adminService.deleteUserByUsername(username);
         return ResponseEntity.ok().build();
     }
 

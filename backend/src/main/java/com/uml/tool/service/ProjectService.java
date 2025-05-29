@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProjectService {
@@ -48,7 +47,6 @@ public class ProjectService {
     public List<Project> getSharedProjects(String email) {
         return projectRepository.findSharedProjectsByEmail(email);
     }
-
     public Project getProjectById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(

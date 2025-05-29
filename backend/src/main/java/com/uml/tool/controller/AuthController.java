@@ -52,7 +52,8 @@ public class AuthController {
         log.debug("Login attempt - Email: {}, Password: {}", loginRequest.getEmail(), loginRequest.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginDetails.getUsername(), loginDetails.getPassword())
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             request.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
             // Set JSESSIONID cookie manually if not present (for MockMvc tests)

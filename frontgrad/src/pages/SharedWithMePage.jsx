@@ -27,6 +27,7 @@ function SharedWithMePage() {
               <div style={{ color: "red" }}>{error}</div>
             ) : sharedProjects.length === 0 ? (
               <div>No shared projects found.</div>
+
             ) : (
               sharedProjects.map((project) => (
                 <ProjectCard

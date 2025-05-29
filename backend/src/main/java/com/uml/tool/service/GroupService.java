@@ -48,6 +48,7 @@ public class GroupService {
             UserLoginDetails user = userRepository.findByEmail(memberReq.getEmail())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "User not found: " + memberReq.getEmail()));
+
             GroupMember.Permission perm;
             try {
                 perm = GroupMember.Permission.valueOf(memberReq.getPermission());
@@ -58,6 +59,7 @@ public class GroupService {
             // Don't add owner as member
             if (user.getEmail().equals(project.getOwner().getEmail()))
                 continue;
+
             GroupMember member = GroupMember.builder()
                     .group(group)
                     .user(user)

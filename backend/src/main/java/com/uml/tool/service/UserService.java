@@ -24,21 +24,13 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
-    public Optional<UserLoginDetails> getByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public Optional<UserLoginDetails> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
     public UserLoginDetails addUser(UserLoginDetails user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
-    public void deleteUserByEmail(String email) {
-        userRepository.deleteByEmail(email);
+    public void deleteUserByUsername(String username) {
+        userRepository.deleteById(username);
     }
 
     public boolean deleteUserByEmailWithResult(String email) {
@@ -53,15 +45,14 @@ public class UserService {
         return userRepository.findByEmail(email).map(user -> {
             user.setFirstName(updated.getFirstName());
             user.setLastName(updated.getLastName());
-            user.setUsername(updated.getUsername());
             user.setOccupation(updated.getOccupation());
             user.setProfileImage(updated.getProfileImage());
             return userRepository.save(user);
         }).orElseThrow();
     }
 
-    public void changePassword(String email, String newPassword) {
-        userRepository.findByEmail(email).ifPresent(user -> {
+    public void changePasswordByUsername(String username, String newPassword) {
+        userRepository.findByUsername(username).ifPresent(user -> {
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
         });
@@ -76,6 +67,10 @@ public class UserService {
     }
 
     public List<UserLoginDetails> searchUsers(String query) {
-        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query);
+        return userRepository.findByUsernameContainingIgnoreCase(query);
+    }
+
+    public UserLoginDetails saveUser(UserLoginDetails user) {
+        return userRepository.save(user);
     }
 }
