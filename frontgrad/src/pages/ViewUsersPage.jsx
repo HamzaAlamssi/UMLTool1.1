@@ -17,8 +17,8 @@ const ViewUsersPage = () => {
     try {
       const url = query
         ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-            query
-          )}`
+          query
+        )}`
         : "http://localhost:9000/api/users";
       const res = await fetch(url, { credentials: "include" });
       if (res.ok) {
@@ -128,10 +128,10 @@ const ViewUsersPage = () => {
                     <div className={styles.userAvatar}>
                       {user.profileImage ? (
                         <img src={user.profileImage} alt={user.username} />
-                      ) : user.firstName && user.lastName ? (
+                      ) : user.firstName && user.lastName && user.firstName[0] && user.lastName[0] ? (
                         `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
                       ) : (
-                        user.username[0].toUpperCase()
+                        user.username && user.username[0] ? user.username[0].toUpperCase() : "?"
                       )}
                     </div>
                     <div className={styles.userInfo}>

@@ -17,6 +17,7 @@ import ProjectPage from "./pages/ProjectPage";
 import { ProjectProvider } from "./context/ProjectContext";
 import RequireAuth from "./components/RequireAuth";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminRegisterPage from "./pages/AdminRegisterPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route index element={<LoginPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="AdminLogin" element={<AdminLoginPage />} />
+          <Route path="AdminRegister" element={<AdminRegisterPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="ForgotPassword" element={<ForgotPasswordPage />} />
           <Route path="*" element={<ErrorPage />} />

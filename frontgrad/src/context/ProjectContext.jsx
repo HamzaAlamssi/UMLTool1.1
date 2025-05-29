@@ -18,7 +18,7 @@ export function ProjectProvider({ children }) {
   const location = useLocation();
 
   // List of public routes
-  const publicRoutes = ["/login", "/register", "/ForgotPassword", "/AdminLogin"];
+  const publicRoutes = ["/login", "/register", "/ForgotPassword", "/AdminLogin", "/AdminRegister"];
 
   // Fetch user info
   useEffect(() => {

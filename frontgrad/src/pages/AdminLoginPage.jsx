@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "../components/styles/user-pages/LoginPage.module.css";
 
 function AdminLoginPage() {
-    
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -97,9 +97,15 @@ function AdminLoginPage() {
         >
           Back to User Login
         </button>
+        <button
+          style={{ marginTop: 8, fontSize: "0.9rem", background: "none", border: "none", color: "#348983", cursor: "pointer", textDecoration: "underline" }}
+          onClick={() => navigate("/AdminRegister")}
+        >
+          Register as Admin
+        </button>
       </div>
     </div>
   );
 }
 
-export default AdminLoginPage; 
+export default AdminLoginPage;
