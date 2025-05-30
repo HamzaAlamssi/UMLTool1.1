@@ -7,5 +7,6 @@ import java.util.List;
 public class CreateGroupRequest {
     private Long projectId;
     private String groupName;
+    private String cursorColor;
     private List<GroupMemberRequest> members;
 }

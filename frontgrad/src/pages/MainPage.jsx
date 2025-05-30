@@ -10,7 +10,7 @@ import { FiPlus } from "react-icons/fi";
 import { useProjects } from "../context/ProjectContext";
 
 function MainPage() {
-  const { user, projects, templates, loading, error, createProject } = useProjects();
+  const { user, projects, templates, error, createProject } = useProjects();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   const [previousActiveLink, setPreviousActiveLink] = React.useState(null);
   const [showWhiteboardModal, setShowWhiteboardModal] = React.useState(false);

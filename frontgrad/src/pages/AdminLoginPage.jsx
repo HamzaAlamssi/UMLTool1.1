@@ -29,21 +29,7 @@ function AdminLoginPage() {
         body: JSON.stringify(loginData),
       });
       if (response.ok) {
-        // Fetch user info to check role
-        const userRes = await fetch("http://localhost:9000/auth/aUser", {
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          if (userData.role === "ADMIN") {
-            navigate("/ViewUsers");
-          } else {
-            setError("You are not authorized as admin.");
-          }
-        } else {
-          setError("Failed to fetch user info.");
-        }
+        navigate("/ViewUsers");
       } else {
         setError("Invalid credentials");
       }

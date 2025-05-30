@@ -141,3 +141,25 @@
   max-height: 340px;
   margin-bottom: 1rem;
 }
+
+.addMemberInput {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 0.8rem;
+  background: #f8fafc;
+  color: #222;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  transition: border 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 4px rgba(52, 137, 131, 0.06);
+  outline: none;
+}
+.addMemberInput:focus {
+  border: 1.5px solid #348983;
+  box-shadow: 0 2px 8px #34898322;
+}
+.addMemberRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1.2rem 0 0.5rem 0;
+}
