@@ -3,7 +3,7 @@ import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
 import CollaboratorsModal from "../components/CollaboratorsModal";
-import UmlEditor from "./yaqeen.jsx";
+import UmlEditor from "./UMLEditor.jsx";
 import { useParams } from "react-router-dom";
 
 function ProjectPage() {
@@ -69,6 +69,8 @@ function ProjectPage() {
         editorInstance={editorRef}
         onMessagesClick={() => setChatOpen((v) => !v)}
         onShareClick={() => setShareOpen(true)}
+        projectName={project?.name}
+        projectOwner={project?.owner?.username}
       />
       <div style={{ padding: "1rem" }}>
         {project ? (
