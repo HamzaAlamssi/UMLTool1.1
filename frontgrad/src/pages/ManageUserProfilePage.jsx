@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/ManageUserProfilePage.module.css";
-import { FaCamera, FaPencilAlt, FaSave } from "react-icons/fa";
+import { FaCamera, FaSave, FaPencilAlt } from "react-icons/fa";
 
 const occupationOptions = [
   "Student",
@@ -22,18 +22,18 @@ const ProfileDashboard = () => {
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
     image: "",
     occupation: "",
   });
+  const [password, setPassword] = useState(""); // Separate state for password
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [editField, setEditField] = useState(null);
+  const [originalEmail, setOriginalEmail] = useState(""); // Track original email
 
   useEffect(() => {
     if (!userEmail) return;
-    setLoading(true);
     fetch(`http://localhost:9000/api/users/${encodeURIComponent(userEmail)}`, { credentials: "include" })
       .then((res) =>
         res.ok ? res.json() : Promise.reject("User not found")
@@ -43,16 +43,14 @@ const ProfileDashboard = () => {
           firstName: data.firstName || "",
           lastName: data.lastName || "",
           email: data.email || "",
-          password: "",
           image: data.profileImage || "",
           occupation: data.occupation || "",
           username: data.username || "",
         });
-        setLoading(false);
+        setPassword(""); // Always clear password field on load
       })
       .catch((err) => {
         setError(err?.toString() || "Failed to fetch user info.");
-        setLoading(false);
       });
   }, [userEmail]);
 
@@ -68,42 +66,6 @@ const ProfileDashboard = () => {
 
   const updateField = (field, value) => {
     setUserData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const checkDuplicate = async (field, value) => {
-    if (!value || value === userData[field]) return false;
-    if (field === "username") {
-      const res = await fetch(`http://localhost:9000/api/users/search?q=${encodeURIComponent(value)}`, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        // Only consider as duplicate if the found user's email (ID) is different from the current user's email (ID)
-        return data.some(u => u.username === value && u.email !== userData.email);
-      }
-    } else if (field === "email") {
-      const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(value)}`, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        // Only consider as duplicate if the found user's email (ID) is different from the current user's email (ID)
-        return data.email === value && data.email !== userData.email;
-      }
-    }
-    return false;
-  };
-
-  const handleEdit = async (label) => {
-    const currentVal = userData[label];
-    let newValue = prompt(`Enter new ${label.replace(/([A-Z])/, " $1")}:`, label === "password" ? "" : currentVal);
-    if (newValue !== null && newValue.trim() !== "") {
-      if ((label === "username" || label === "email") && newValue !== userData[label]) {
-        const exists = await checkDuplicate(label, newValue);
-        if (exists) {
-          setError(`This ${label} is already taken by another user.`);
-          setTimeout(() => setError(""), 3000);
-          return;
-        }
-      }
-      updateField(label, newValue);
-    }
   };
 
   const handleImageChange = (e) => {
@@ -122,15 +84,13 @@ const ProfileDashboard = () => {
     return (firstName?.[0] || "") + (lastName?.[0] || "");
   };
 
+  // In handleSave, only check for duplicate email/username if changed
   const handleSave = async () => {
     setError("");
     setSuccess("");
-
     try {
       const res = await fetch(
-        `http://localhost:9000/api/users/${encodeURIComponent(
-          userData.username
-        )}`,
+        `http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -138,13 +98,13 @@ const ProfileDashboard = () => {
           body: JSON.stringify({
             ...userData,
             profileImage: userData.image,
-            ...(userData.password && { password: userData.password }),
+            ...(password && { password }),
           }),
         }
       );
-
       if (res.ok) {
         setSuccess("Profile updated successfully!");
+        setPassword(""); // Clear password after save
       } else if (res.status === 400) {
         const data = await res.json();
         setError(Object.values(data).join(" "));
@@ -163,8 +123,25 @@ const ProfileDashboard = () => {
         onLogout={() => (window.location.href = "/login")}
       />
       <main className={styles.main}>
-        {loading ? (
-          <div style={{ color: '#348983', fontWeight: 600, fontSize: '1.2rem', margin: '2rem auto' }}>Loading user info...</div>
+        {!userEmail ? (
+          <div style={{
+            color: '#348983',
+            fontWeight: 700,
+            fontSize: '1.2rem',
+            margin: '3rem auto',
+            textAlign: 'center',
+            background: '#eef7f6',
+            border: '1.5px solid #2f847c',
+            borderRadius: '12px',
+            padding: '2.5rem 2rem',
+            maxWidth: 520,
+            boxShadow: '0 4px 24px rgba(52, 137, 131, 0.10)',
+            letterSpacing: '0.01em',
+            transition: 'background 0.2s',
+            display: 'block',
+          }}>
+            Please choose a user from the <span style={{ color: '#2f847c', fontWeight: 800 }}>View Users Page </span> to manage their profile.
+          </div>
         ) : (
           <div className={styles.profileCard}>
             <div className={styles.profileBody}>
@@ -179,7 +156,21 @@ const ProfileDashboard = () => {
                     <div className={styles.initials}>{getInitials()}</div>
                   )}
                 </div>
-                <label className={styles.changeBtn} htmlFor="file-upload">
+                <label
+                  className={styles.changeBtn}
+                  htmlFor="file-upload"
+                  style={{
+                    opacity: 1,
+                    pointerEvents: 'auto',
+                    cursor: 'pointer',
+                    background: '#2f847c',
+                    color: '#fff',
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(52,137,131,0.08)',
+                    transition: 'background 0.2s',
+                    fontWeight: 600
+                  }}
+                >
                   <FaCamera /> Change Photo
                 </label>
                 <input
@@ -188,62 +179,168 @@ const ProfileDashboard = () => {
                   accept="image/*"
                   hidden
                   onChange={handleImageChange}
+                  disabled={false}
                 />
               </div>
 
-              {/* Username field at the top */}
+              {/* Email field (always read-only) */}
+              <div className={styles.profileField}>
+                <label className={styles.fieldLabel}>Email Address</label>
+                <div className={styles.fieldValue}>
+                  <span className={styles.fieldText}>{userData.email}</span>
+                </div>
+              </div>
+
+              {/* Username field (editable) */}
               <div className={styles.profileField}>
                 <label className={styles.fieldLabel}>Username</label>
                 <div className={styles.fieldValue}>
-                  <span className={styles.fieldText}>{userData.username}</span>
-                  <button
-                    className={styles.changeBtn}
-                    onClick={() => handleEdit("username")}
-                  >
-                    <FaPencilAlt /> Edit
-                  </button>
+                  {editField === "username" ? (
+                    <input
+                      className={styles.selectInput}
+                      type="text"
+                      value={userData.username}
+                      onChange={e => updateField("username", e.target.value)}
+                      onBlur={() => setEditField(null)}
+                      autoFocus
+                      disabled={false}
+                      style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                    />
+                  ) : (
+                    <React.Fragment>
+                      <span className={styles.fieldText}>{userData.username}</span>
+                      <button
+                        className={styles.changeBtn}
+                        onClick={() => setEditField("username")}
+                        disabled={false}
+                        style={{
+                          opacity: 1,
+                          pointerEvents: 'auto',
+                          background: '#2f847c',
+                          color: '#fff',
+                          border: 'none',
+                          boxShadow: '0 2px 8px rgba(52,137,131,0.08)',
+                          transition: 'background 0.2s',
+                          fontWeight: 600,
+                          marginLeft: 8
+                        }}
+                      >
+                        <FaPencilAlt /> Edit
+                      </button>
+                    </React.Fragment>
+                  )}
                 </div>
               </div>
 
               {/* Other fields */}
-              {["firstName", "lastName", "email", "occupation", "password"].map(
+              {["firstName", "lastName", "occupation", "password"].map(
                 (field) => (
                   <div className={styles.profileField} key={field}>
                     <label className={styles.fieldLabel}>
                       {field === "firstName"
                         ? "First Name"
                         : field === "lastName"
-                        ? "Last Name"
-                        : field === "email"
-                        ? "Email Address"
-                        : field === "occupation"
-                        ? "Occupation"
-                        : "Password"}
+                          ? "Last Name"
+                          : field === "occupation"
+                            ? "Occupation"
+                            : "Password"}
                     </label>
-                    <div className={styles.fieldValue}>
-                      {field === "occupation" ? (
-                        <select
-                          className={styles.selectInput}
-                          value={userData.occupation}
-                          onChange={e => updateField("occupation", e.target.value)}
-                        >
-                          <option value="">Select Occupation</option>
-                          {occupationOptions.map(option => (
-                            <option key={option} value={option}>{option}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <>
-                          <span className={styles.fieldText}>{userData[field]}</span>
-                          <button
-                            className={styles.changeBtn}
-                            onClick={() => handleEdit(field)}
-                          >
-                            <FaPencilAlt /> Edit
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {field === "occupation" ? (
+                      <select
+                        className={styles.selectInputSmall}
+                        value={userData.occupation}
+                        onChange={e => updateField("occupation", e.target.value)}
+                        disabled={false}
+                        style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                      >
+                        <option value="">Select Occupation</option>
+                        {occupationOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className={styles.fieldValue}>
+                        {editField === field ? (
+                          field === "password" ? (
+                            <input
+                              className={styles.selectInput}
+                              type="password"
+                              value={password}
+                              onChange={e => setPassword(e.target.value)}
+                              autoFocus={editField === "password"}
+                              disabled={false}
+                              style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                              onBlur={() => setEditField(null)}
+                            />
+                          ) : (
+                            <input
+                              className={styles.selectInput}
+                              type={field === "email" ? "email" : "text"}
+                              value={userData[field]}
+                              onChange={e => updateField(field, e.target.value)}
+                              onBlur={async () => {
+                                if (field === "email" && userData.email !== originalEmail) {
+                                  try {
+                                    const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`, { credentials: "include" });
+                                    if (res.ok) {
+                                      const data = await res.json();
+                                      let othersWithEmail = [];
+                                      if (Array.isArray(data)) {
+                                        othersWithEmail = data.filter(u => u.email === userData.email && u.username && u.username !== userData.username);
+                                      } else if (data && typeof data === "object") {
+                                        if (data.email === userData.email && data.username && data.username !== userData.username) {
+                                          othersWithEmail = [data];
+                                        }
+                                      }
+                                      if (othersWithEmail.length > 0) {
+                                        setError("This email is already taken by another user.");
+                                        setTimeout(() => setError(""), 3000);
+                                        return;
+                                      }
+                                    }
+                                  } catch {
+                                    // Suppress backend error messages about non-unique results
+                                  }
+                                }
+                                setEditField(null);
+                              }}
+                              autoFocus
+                              disabled={false}
+                              style={{ opacity: 1, pointerEvents: 'auto', background: '#fff', color: '#222' }}
+                            />
+                          )
+                        ) : (
+                          <React.Fragment>
+                            <span className={styles.fieldText}>
+                              {field === "password" ? "********" : userData[field]}
+                            </span>
+                            {field !== "occupation" && (
+                              <button
+                                className={styles.changeBtn}
+                                onClick={() => {
+                                  setEditField(field);
+                                  if (field === "email") setOriginalEmail(userData.email);
+                                }}
+                                disabled={false}
+                                style={{
+                                  opacity: 1,
+                                  pointerEvents: 'auto',
+                                  background: '#2f847c',
+                                  color: '#fff',
+                                  border: 'none',
+                                  boxShadow: '0 2px 8px rgba(52,137,131,0.08)',
+                                  transition: 'background 0.2s',
+                                  fontWeight: 600,
+                                  marginLeft: 8
+                                }}
+                              >
+                                <FaPencilAlt /> Edit
+                              </button>
+                            )}
+                          </React.Fragment>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )
               )}
@@ -256,7 +353,21 @@ const ProfileDashboard = () => {
               {success && (
                 <div style={{ color: "green", marginTop: "1rem" }}>{success}</div>
               )}
-              <button className={styles.saveBtn} onClick={handleSave}>
+              <button
+                className={styles.saveBtn}
+                onClick={handleSave}
+                disabled={false}
+                style={{
+                  opacity: 1,
+                  pointerEvents: 'auto',
+                  background: '#2f847c',
+                  color: '#fff',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(52,137,131,0.08)',
+                  transition: 'background 0.2s',
+                  fontWeight: 600
+                }}
+              >
                 <FaSave /> Save Changes
               </button>
             </div>

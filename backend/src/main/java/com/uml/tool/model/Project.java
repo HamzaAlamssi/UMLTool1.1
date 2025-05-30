@@ -22,7 +22,7 @@ public class Project {
     private UserLoginDetails owner;
 
     private String name;
-    private String diagramType;
+    // private String diagramType; // <-- Remove this line
 
     @Column(columnDefinition = "TEXT")
     private String diagramJson;

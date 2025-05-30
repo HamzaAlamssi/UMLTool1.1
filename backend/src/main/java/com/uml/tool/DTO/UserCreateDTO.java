@@ -1,15 +1,12 @@
 package com.uml.tool.DTO;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class UserCreateDTO {
-    @NotBlank
-    @Email
-    private String email;
+    private String email; // Optional, only for password reset/notification
 
     @NotBlank
     private String username;

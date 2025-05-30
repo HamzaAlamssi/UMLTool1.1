@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import com.uml.tool.model.UserLoginDetails;
 
 import java.util.Optional;
 
@@ -20,9 +21,9 @@ public class UmlToolsServices implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Optional<UserLoginDTO> optionalUser = userLoginDetailsRepository.findByEmail(email);
+        Optional<UserLoginDetails> optionalUser = userLoginDetailsRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
-            UserLoginDTO user = optionalUser.get();
+            UserLoginDetails user = optionalUser.get();
             return User.builder().username(user.getEmail())
                     .password(user.getPassword())
                     .roles(user.getRole().name())

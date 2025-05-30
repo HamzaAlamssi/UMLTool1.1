@@ -6,7 +6,6 @@ import com.uml.tool.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -27,18 +26,12 @@ public class AdminService {
     }
 
     public UserLoginDetails addUser(UserLoginDetails user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent() ||
-                userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this email or username already exists.");
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User with this email already exists.");
         }
         user.setRole(UserRoles.USER);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
-    }
-
-    @Transactional
-    public void deleteUserByEmail(String email) {
-        userRepository.deleteByEmail(email);
     }
 
     public List<UserLoginDetails> getAllUsers() {
@@ -59,5 +52,9 @@ public class AdminService {
             admin.setProfileImage(updated.getProfileImage());
             return userRepository.save(admin);
         }).orElseThrow();
+    }
+
+    public void deleteUserByEmail(String email) {
+        userRepository.deleteByEmail(email);
     }
 }

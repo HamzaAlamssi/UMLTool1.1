@@ -1,34 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../components/styles/user-pages/MainPage.module.css";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import WhiteboardModal from "../components/WhiteboardModal";
+import TemplateCard from "../components/TemplateCard";
+import ProjectCard from "../components/ProjectCard";
+import { FiPlus } from "react-icons/fi";
+import { useProjects } from "../context/ProjectContext";
 
 function MainPage() {
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [previousActiveLink, setPreviousActiveLink] = useState(null);
+  const { user, projects, templates, loading, error, createProject } = useProjects();
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  const [previousActiveLink, setPreviousActiveLink] = React.useState(null);
+  const [showWhiteboardModal, setShowWhiteboardModal] = React.useState(false);
+  const [projectName, setProjectName] = React.useState("");
+  const [modalLoading, setModalLoading] = React.useState(false);
+  const [modalError, setModalError] = React.useState("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetch("http://localhost:9000/auth/aUser", {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error("Not authenticated");
-        }
-      })
-      .then((data) => setUser(data))
-      .catch((err) => setError(err.message));
-  }, []);
 
   const handleLogout = () => {
     setShowLogoutModal(false);
@@ -47,6 +36,49 @@ function MainPage() {
     setShowLogoutModal(true);
   };
 
+  const handleBlankCardClick = () => {
+    setShowWhiteboardModal(true);
+    setProjectName("");
+    setModalError("");
+  };
+
+  const handleWhiteboardModalClose = () => {
+    setShowWhiteboardModal(false);
+    setProjectName("");
+    setModalError("");
+  };
+
+  const handleWhiteboardModalSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    setModalError("");
+    try {
+      const data = await createProject(projectName);
+      setModalLoading(false);
+      setShowWhiteboardModal(false);
+      navigate(`/project/${data.id}`);
+    } catch (err) {
+      setModalLoading(false);
+      setModalError(err.message || err.toString());
+    }
+  };
+
+  // Sort and slice for display
+  const sortedTemplates = [...(templates || [])]
+    .sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return bTime - aTime;
+    })
+    .slice(0, 3);
+  const sortedProjects = [...(projects || [])]
+    .sort((a, b) => {
+      const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return bTime - aTime;
+    })
+    .slice(0, 4);
+
   return (
     <div className={styles.mainPage}>
       <Header />
@@ -56,33 +88,47 @@ function MainPage() {
           <h1>Welcome, {user ? user.username : "Guest"}!</h1>
           {error && <p className={styles.error}>{error}</p>}
         </header>
-        <h2 className={styles.fixedTitle}>Dive into our new templates</h2>
+        <h2 className={styles.fixedTitle}>Start a New Project</h2>
         <div className={styles.templates}>
           <div
             className={styles.templateCard}
-            onClick={() => alert("Blank template selected!")}
+            onClick={handleBlankCardClick}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", color: "#348983", border: "2px dashed #b2dfdb", background: "#e6f2f1", cursor: "pointer" }}
+            title="Start from blank"
           >
-            <h3>Blank</h3>
-            <img src="/image/Blank.png" alt="Blank Template" />
+            <FiPlus size={38} style={{ marginBottom: 8 }} />
+            <span style={{ fontSize: "1.1rem", fontWeight: 600 }}>Blank Project</span>
           </div>
-          <div
-            className={styles.templateCard}
-            onClick={() => alert("Sequence diagram selected!")}
-          >
-            <h3>Sequence Diagram</h3>
-            <img src="/image/Sequence%20Diagram.png" alt="Sequence Diagram" />
-          </div>
-          <div
-            className={styles.templateCard}
-            onClick={() => alert("Use Case diagram selected!")}
-          >
-            <h3>Use Case Diagram</h3>
-            <img src="/image/Use%20Case%20Diagram.png" alt="Use Case Diagram" />
-          </div>
+          {sortedTemplates.map((tpl) => (
+            <TemplateCard key={tpl.id} template={tpl} />
+          ))}
         </div>
-        <div className={styles.recentProjects}>Recent Projects</div>
+        <h2 className={styles.fixedTitle} style={{ marginTop: "2.2rem" }}>Recent Projects</h2>
+        <div className={styles.cardsContainer}>
+          {sortedProjects.length === 0 ? (
+            <div>No recent projects found.</div>
+          ) : (
+            sortedProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onClick={() => navigate(`/project/${project.id}`)}
+                showDelete={false}
+              />
+            ))
+          )}
+        </div>
       </div>
       <div className={styles.bottomRectangle}></div>
+      <WhiteboardModal
+        open={showWhiteboardModal}
+        onClose={handleWhiteboardModalClose}
+        projectName={projectName}
+        setProjectName={setProjectName}
+        loading={modalLoading}
+        error={modalError}
+        onSubmit={handleWhiteboardModalSubmit}
+      />
       {showLogoutModal && (
         <div className={styles.logoutModalOverlay}>
           <div className={styles.logoutModalContent}>

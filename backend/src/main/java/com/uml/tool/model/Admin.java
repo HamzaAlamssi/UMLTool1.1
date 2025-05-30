@@ -4,7 +4,6 @@ import com.uml.tool.constants.UserRoles;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -14,9 +13,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 public class Admin extends User {
-
-    @Id
-    String email;
 
     @Column(name = "name")
     String name;

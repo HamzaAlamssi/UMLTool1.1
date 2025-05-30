@@ -14,27 +14,37 @@ import ViewUsersPage from "./pages/ViewUsersPage";
 import ManageUserProfilePage from "./pages/ManageUserProfilePage";
 import ProfilePage from "./pages/NewProfilePage";
 import ProjectPage from "./pages/ProjectPage";
+import { ProjectProvider } from "./context/ProjectContext";
+import RequireAuth from "./components/RequireAuth";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminRegisterPage from "./pages/AdminRegisterPage";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route index element={<LoginPage />} /> //done
-        <Route path="login" element={<LoginPage />} /> //done
-        <Route path="register" element={<RegisterPage />} /> //done
-        <Route path="main" element={<MainPage />} /> //done
-        <Route path="recentProjects" element={<RecentProjectsPage />} />
-        <Route path="SharedWithMe" element={<SharedWithMePage />} />
-        <Route path="Templates" element={<TemplatesPage />} /> //done
-        <Route path="*" element={<ErrorPage />} /> //done
-        <Route path="ForgotPassword" element={<ForgotPasswordPage />} />
-        <Route path="DeleteUser" element={<DeleteUserPage />} />
-        <Route path="AddUser" element={<AddUserPage />} />
-        <Route path="ViewUsers" element={<ViewUsersPage />} />
-        <Route path="ManageUserProfile" element={<ManageUserProfilePage />} />
-        <Route path="Profile" element={<ProfilePage />} /> //done
-        <Route path="project/:id" element={<ProjectPage />} />
-      </Routes>
+      <ProjectProvider>
+        <Routes>
+          <Route index element={<LoginPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="AdminLogin" element={<AdminLoginPage />} />
+          <Route path="AdminRegister" element={<AdminRegisterPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="ForgotPassword" element={<ForgotPasswordPage />} />
+          <Route path="*" element={<ErrorPage />} />
+
+          {/* Protected routes */}
+          <Route path="main" element={<RequireAuth><MainPage /></RequireAuth>} />
+          <Route path="recentProjects" element={<RequireAuth><RecentProjectsPage /></RequireAuth>} />
+          <Route path="SharedWithMe" element={<RequireAuth><SharedWithMePage /></RequireAuth>} />
+          <Route path="Templates" element={<RequireAuth><TemplatesPage /></RequireAuth>} />
+          <Route path="DeleteUser" element={<RequireAuth role="admin"><DeleteUserPage /></RequireAuth>} />
+          <Route path="AddUser" element={<RequireAuth role="admin"><AddUserPage /></RequireAuth>} />
+          <Route path="ViewUsers" element={<RequireAuth role="admin"><ViewUsersPage /></RequireAuth>} />
+          <Route path="ManageUserProfile" element={<RequireAuth role="admin"><ManageUserProfilePage /></RequireAuth>} />
+          <Route path="Profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+          <Route path="project/:id" element={<RequireAuth><ProjectPage /></RequireAuth>} />
+        </Routes>
+      </ProjectProvider>
     </BrowserRouter>
   );
 }

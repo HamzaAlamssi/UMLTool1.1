@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { FaUsers, FaSearch } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
-import styles from "../components/styles/admin-pages/ViewUsersPage.module.css";
+import styles from "../components/styles/admin-pages/DeleteUserPage.module.css";
+import { FaUsers, FaSearch } from "react-icons/fa";
 
 const ViewUsersPage = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const fetchUsers = async (query = "") => {
     setLoading(true);
@@ -17,8 +15,8 @@ const ViewUsersPage = () => {
     try {
       const url = query
         ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-            query
-          )}`
+          query
+        )}`
         : "http://localhost:9000/api/users";
       const res = await fetch(url, { credentials: "include" });
       if (res.ok) {
@@ -78,7 +76,11 @@ const ViewUsersPage = () => {
               </span>
             </span>
             <div
-              style={{ position: "relative", width: "180px", marginLeft: 0 }}
+              style={{
+                position: "relative",
+                width: "180px",
+                marginLeft: 0,
+              }}
             >
               <input
                 type="text"
@@ -109,40 +111,74 @@ const ViewUsersPage = () => {
               />
             </div>
           </div>
-          <div>
+          <div className={styles.userListContainer}>
             {loading ? (
-              <div>Loading...</div>
+              <div>Loading users, please wait...</div>
             ) : error ? (
-              <div className={styles.emptyState}>{error}</div>
+              <div className={styles.emptyState}>
+                Oops! Something went wrong: {error}
+              </div>
             ) : users.length === 0 ? (
-              <div className={styles.emptyState}>No users found</div>
+              <div className={styles.emptyState}>
+                No users found. Try adjusting your search or add a new user!
+              </div>
             ) : (
               <div className={styles.usersGrid}>
-                {users.map((user) => (
-                  <div
-                    className={styles.userCard}
-                    key={user.email}
-                    onClick={() => navigate(`/ManageUserProfile?email=${encodeURIComponent(user.email)}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className={styles.userAvatar}>
-                      {user.profileImage ? (
-                        <img src={user.profileImage} alt={user.username} />
-                      ) : user.firstName && user.lastName ? (
-                        `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-                      ) : (
-                        user.username[0].toUpperCase()
+
+                {users
+                  .reduce((rows, user, idx) => {
+                    if (idx % 2 === 0) rows.push([]);
+                    rows[rows.length - 1].push(user);
+                    return rows;
+                  }, [])
+                  .map((row, rowIdx) => (
+                    <div key={rowIdx} className={styles.userRow}>
+                      {row.map((user) => (
+                        <div
+                          key={user.email}
+                          className={styles.userCard}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            window.location.href = `/ManageUserProfile?email=${encodeURIComponent(user.email)}`;
+                          }}
+                        >
+                          <div className={styles.userAvatar}>
+                            {user.profileImage ? (
+                              <img src={user.profileImage} alt={user.username} />
+                            ) : user.firstName && user.lastName ? (
+                              `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                            ) : user.username ? (
+                              user.username[0]?.toUpperCase()
+                            ) : user.email ? (
+                              user.email[0]?.toUpperCase()
+                            ) : (
+                              "?"
+                            )}
+                          </div>
+                          <div className={styles.userInfo}>
+                            <div className={styles.userName}>{user.username}</div>
+                            <div className={styles.userEmail}>{user.email}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {row.length === 1 && (
+                        <div
+                          className={styles.userCard}
+                          style={{ visibility: "hidden" }}
+                        />
+                      )}{" "}
+                      {/* For alignment if odd */}
+                      {rowIdx !== Math.floor(users.length / 2) && (
+                        <hr className={styles.rowDivider} />
                       )}
                     </div>
-                    <div className={styles.userInfo}>
-                      <div className={styles.userName}>{user.username}</div>
-                      <div className={styles.userEmail}>{user.email}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
+          <footer className={styles.dashboardFooter} style={{ display: 'none' }}>
+            {/* Footer hidden in view user page */}
+          </footer>
         </div>
       </main>
     </div>
