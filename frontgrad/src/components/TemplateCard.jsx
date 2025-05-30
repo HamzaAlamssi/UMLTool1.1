@@ -1,22 +1,16 @@
 import React from "react";
 import styles from "./styles/user-pages/TemplatesPage.module.css";
 import { useNavigate } from "react-router-dom";
+import { useProjects } from "../context/ProjectContext";
 
 function TemplateCard({ template }) {
   const navigate = useNavigate();
+  const { user } = useProjects();
 
   const handleClick = async () => {
     try {
-      // Get current user info
-      const userRes = await fetch("http://localhost:9000/auth/aUser", {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!userRes.ok) throw new Error("Not authenticated");
-      const userData = await userRes.json();
-      const email = userData.email;
-
+      if (!user || !user.email) throw new Error("User not authenticated");
+      const email = user.email;
       // Create project from template
       const res = await fetch(
         `http://localhost:9000/api/templates/${template.id}/create-project?projectName=${encodeURIComponent(template.name)}&ownerEmail=${encodeURIComponent(email)}`,

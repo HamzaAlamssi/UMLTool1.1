@@ -14,16 +14,16 @@ export function ProjectProvider({ children }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [hasFetched, setHasFetched] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
 
   // List of public routes
   const publicRoutes = ["/login", "/register", "/ForgotPassword", "/AdminLogin", "/AdminRegister"];
 
-  // Fetch user info
+  // Fetch user info only once on mount
   useEffect(() => {
     // Only fetch user if not on a public route
-    if (publicRoutes.includes(location.pathname)) return;
+    if (publicRoutes.includes(window.location.pathname)) return;
 
     fetch("http://localhost:9000/auth/aUser", {
       credentials: "include",
@@ -44,7 +44,28 @@ export function ProjectProvider({ children }) {
         setError(err.message || err.toString());
         // Already navigated above if 401
       });
-  }, [navigate, location.pathname]);
+  }, []);
+
+  // Manual user refresh (e.g., after login)
+  const refreshUser = () => {
+    fetch("http://localhost:9000/auth/aUser", {
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          navigate("/login", { replace: true });
+          throw new Error("Not authenticated");
+        }
+        return res.ok ? res.json() : Promise.reject("Not authenticated");
+      })
+      .then((userData) => {
+        setUser(userData);
+      })
+      .catch((err) => {
+        setError(err.message || err.toString());
+      });
+  };
 
   // Fetch projects, shared projects, and templates
   const fetchAll = useCallback(() => {
@@ -72,8 +93,12 @@ export function ProjectProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    if (user) fetchAll();
-  }, [user, fetchAll]);
+    // Only fetch if user is loaded and we haven't fetched yet
+    if (user && !hasFetched) {
+      fetchAll();
+      setHasFetched(true);
+    }
+  }, [user, fetchAll, hasFetched]);
 
   // Add project (immediate UI update)
   const addProject = (project) => setProjects((prev) => [project, ...prev]);
@@ -95,8 +120,11 @@ export function ProjectProvider({ children }) {
     }
   };
 
-  // Refresh all
-  const refresh = () => fetchAll();
+  // Manual refresh resets the flag and refetches
+  const refresh = () => {
+    setHasFetched(false);
+    fetchAll();
+  };
 
   // Update project name (API + update state)
   const updateProjectName = async (projectId, newName) => {
@@ -154,6 +182,7 @@ export function ProjectProvider({ children }) {
         refresh,
         updateProjectName,
         createProject,
+        refreshUser,
       }}
     >
       {children}

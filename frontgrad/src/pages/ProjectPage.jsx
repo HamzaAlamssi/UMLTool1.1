@@ -5,17 +5,20 @@ import ShareModal from "../components/ShareModal";
 import CollaboratorsModal from "../components/CollaboratorsModal";
 import UmlEditor from "./UMLEditor.jsx";
 import { useParams } from "react-router-dom";
+import { useProjects } from "../context/ProjectContext";
+import { ProjectGroupProvider, useProjectGroup } from "../context/ProjectGroupContext";
 
-function ProjectPage() {
+function ProjectPageInner({ projectId }) {
   const editorRef = useRef(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
   const [project, setProject] = useState(null);
   const [initialModel, setInitialModel] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+  const { user } = useProjects();
   const [error, setError] = useState(null);
-  const { id: projectId } = useParams();
+  const { group, loading: groupLoading } = useProjectGroup();
+  const [modalState, setModalState] = useState(null); // 'share' | 'collab' | null
 
   useEffect(() => {
     if (!projectId) return;
@@ -53,22 +56,15 @@ function ProjectPage() {
       });
   }, [projectId]);
 
-
-  useEffect(() => {
-  fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
-    .then((res) => (res.ok ? res.json() : null))
-    .then((data) => {
-      console.log("Fetched currentUser:", data);
-      setCurrentUser(data);
-    });
-  }, []);
-
   return (
     <>
       <Header
         editorInstance={editorRef}
         onMessagesClick={() => setChatOpen((v) => !v)}
-        onShareClick={() => setShareOpen(true)}
+        onShareClick={() => {
+          if (group) setModalState('collab');
+          else setModalState('share');
+        }}
         projectName={project?.name}
         projectOwner={project?.owner?.username}
       />
@@ -102,25 +98,20 @@ function ProjectPage() {
         <ChatSidebar
           onClose={() => setChatOpen(false)}
           projectId={projectId}
-          currentUser={currentUser}
+          currentUser={user}
         />
       )}
       <ShareModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        onManageCollaborators={() => {
-          setShareOpen(false);
-          setCollabOpen(true);
-        }}
+        open={modalState === 'share'}
+        onClose={() => setModalState(null)}
+        onManageCollaborators={() => setModalState('collab')}
         projectId={projectId}
       />
       <CollaboratorsModal
-        open={collabOpen}
-        onClose={() => setCollabOpen(false)}
-        onAdd={() => {
-          setCollabOpen(false);
-          setShareOpen(true);
-        }}
+        open={modalState === 'collab'}
+        onClose={() => setModalState(null)}
+        onAdd={() => setModalState('share')}
+        project={project}
       />
       {/* If error state is used, ensure it is friendly */}
       {error && (
@@ -132,4 +123,11 @@ function ProjectPage() {
   );
 }
 
-export default ProjectPage;
+export default function ProjectPageWrapper() {
+  const { id: projectId } = useParams();
+  return (
+    <ProjectGroupProvider projectId={projectId}>
+      <ProjectPageInner projectId={projectId} />
+    </ProjectGroupProvider>
+  );
+}

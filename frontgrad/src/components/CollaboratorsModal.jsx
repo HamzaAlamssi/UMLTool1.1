@@ -1,192 +1,133 @@
 import React, { useState } from "react";
 import styles from "./styles/components-styles/CollaboratorsModal.module.css";
+import { useProjectGroup } from "../context/ProjectGroupContext";
 
-const initialCollaborators = [
-  {
-    name: "Esraa Alhariri",
-    avatar: "https://i.pravatar.cc/48?u=user1",
-    role: "Owner",
-    canEdit: false,
-    fallback: null,
-  },
-  {
-    name: "Mohammed Beso",
-    avatar: "https://i.pravatar.cc/48?u=user2",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Yaqeen Khazaleh",
-    avatar: "https://i.pravatar.cc/48?u=user3",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Sara Ahmad",
-    avatar: "https://i.pravatar.cc/48?u=user4",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Omar Khaled",
-    avatar: "https://i.pravatar.cc/48?u=user5",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Lina Fares",
-    avatar: "https://i.pravatar.cc/48?u=user6",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Ali Nasser",
-    avatar: "https://i.pravatar.cc/48?u=user7",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Huda Samir",
-    avatar: "https://i.pravatar.cc/48?u=user8",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Rami Zidan",
-    avatar: "https://i.pravatar.cc/48?u=user9",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Mona Tarek",
-    avatar: "https://i.pravatar.cc/48?u=user10",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Fadi Jaber",
-    avatar: "https://i.pravatar.cc/48?u=user11",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Nour Hassan",
-    avatar: "https://i.pravatar.cc/48?u=user12",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Salma Odeh",
-    avatar: "https://i.pravatar.cc/48?u=user13",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Tariq Suleiman",
-    avatar: "https://i.pravatar.cc/48?u=user14",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-  {
-    name: "Dana Qasem",
-    avatar: "https://i.pravatar.cc/48?u=user15",
-    role: null,
-    canEdit: true,
-    fallback: null,
-  },
-];
+function CollaboratorsModal({ open, onClose, onAdd, project }) {
+  const { group, members, removeMember, addMember, updateMemberPermission, loading, error, refreshGroup } = useProjectGroup();
+  const [newEmail, setNewEmail] = useState("");
+  const [newPerm, setNewPerm] = useState("EDIT");
+  const [permEdits, setPermEdits] = useState({}); // { email: permission }
+  const [savingPerms, setSavingPerms] = useState(false);
 
-function CollaboratorsModal({ open, onClose, onAdd }) {
-  const [collaborators, setCollaborators] = useState(initialCollaborators);
+  const ownerEmail = project?.owner?.email;
 
-  const handleRemove = (name) => {
-    setCollaborators((prev) => prev.filter((c) => c.name !== name));
-  };
+  React.useEffect(() => {
+    // Reset edits when group changes
+    setPermEdits({});
+  }, [group]);
 
   if (!open) return null;
 
-  // Debug: log collaborators to ensure all are present
-  console.log(collaborators);
+  const handleRemove = async (email) => {
+    await removeMember(email);
+  };
+
+  const handleAdd = async () => {
+    if (!newEmail.trim() || newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase()) return;
+    await addMember({ email: newEmail.trim(), permission: newPerm });
+    setNewEmail("");
+    setNewPerm("EDIT");
+  };
+
+  const handlePermChange = (email, permission) => {
+    setPermEdits((prev) => ({ ...prev, [email]: permission }));
+  };
+
+  const handleSavePerms = async () => {
+    setSavingPerms(true);
+    for (const m of members) {
+      const newPerm = permEdits[m.user.email];
+      if (newPerm && newPerm !== m.permission) {
+        await updateMemberPermission(m.user.email, newPerm);
+      }
+    }
+    setPermEdits({});
+    setSavingPerms(false);
+    await refreshGroup();
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Modal header with close button on the right */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h1 className={styles.groupName}>Group Name Placeholder</h1>
-          <button
-            className={styles.closeBtn}
-            onClick={onClose}
-            aria-label="Close"
-            style={{ alignSelf: "flex-start" }}
-          >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h1 className={styles.groupName}>{group?.name || "Group"}</h1>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close" style={{ alignSelf: "flex-start" }}>
             ×
           </button>
         </div>
         <h2 className={styles.title}>Manage Project Collaborators</h2>
-        {/* Scrollable collaborators list */}
         <div className={styles.collaboratorsList}>
-          {collaborators.map((c) => (
-            <div className={styles.collaborator} key={c.name}>
-              {c.avatar ? (
-                <img className={styles.avatar} src={c.avatar} alt="Avatar" />
-              ) : (
-                <div className={`${styles.avatar} ${styles.fallback}`}>
-                  {c.fallback}
+          {members.map((c) => {
+            const isOwner = c.user.email === ownerEmail;
+            return (
+              <div className={styles.collaborator} key={c.user.email} style={{ gap: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', minWidth: 0, flex: 2 }}>
+                  {c.user.profileImage ? (
+                    <img className={styles.avatar} src={c.user.profileImage} alt="Avatar" style={{ borderRadius: '50%', width: 42, height: 42, objectFit: 'cover', marginRight: 10 }} />
+                  ) : (
+                    <div className={`${styles.avatar} ${styles.fallback}`} style={{ marginRight: 10 }}>{c.user.username?.[0]?.toUpperCase() || c.user.email[0]}</div>
+                  )}
+                  <span className={styles.name} style={{ fontWeight: 600, fontSize: '1.05rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120 }}>{c.user.username || c.user.email}</span>
                 </div>
-              )}
-              <span className={styles.name}>{c.name}</span>
-              {c.role ? (
-                <span className={styles.role}>{c.role}</span>
-              ) : (
-                <>
-                  <select className={styles.select} defaultValue="edit">
-                    <option value="edit">Edit and share</option>
-                    <option value="view">View only</option>
-                  </select>
-                  <button
-                    className={styles.removeBtn}
-                    title="Remove"
-                    onClick={() => handleRemove(c.name)}
-                    style={{ marginLeft: 8 }}
+                {isOwner ? (
+                  <span className={styles.role} style={{ marginLeft: 12, fontWeight: 700, color: '#348983', flex: 1 }}>Owner</span>
+                ) : (
+                  <select
+                    className={styles.select}
+                    value={permEdits[c.user.email] || c.permission}
+                    onChange={e => handlePermChange(c.user.email, e.target.value)}
+                    disabled={loading || savingPerms}
+                    style={{ flex: 3, minWidth: 120, maxWidth: 220 }}
                   >
-                    ×
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
+                    <option value="EDIT">Edit and share</option>
+                    <option value="VIEW">View only</option>
+                    <option value="READONLY">Comment only</option>
+                  </select>
+                )}
+                <button
+                  className={styles.removeBtn}
+                  title="Remove"
+                  onClick={() => handleRemove(c.user.email)}
+                  style={{ marginLeft: 8, opacity: isOwner ? 0.3 : 1, pointerEvents: isOwner ? 'none' : 'auto' }}
+                  disabled={loading || savingPerms || isOwner}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
-        <div className={styles.footerButtons}>
-          <button
-            className={styles.primaryBtn}
-            onClick={() => {
-              if (onAdd) onAdd();
-            }}
-          >
+        <div className={styles.addMemberRow}>
+          <input
+            type="email"
+            placeholder="Add member email"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            className={styles.addMemberInput}
+            disabled={loading || savingPerms}
+            style={{ borderColor: newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase() ? '#e57373' : undefined }}
+          />
+          <select value={newPerm} onChange={e => setNewPerm(e.target.value)} className={styles.select} disabled={loading || savingPerms}>
+            <option value="EDIT">Edit and share</option>
+            <option value="VIEW">View only</option>
+            <option value="READONLY">Comment only</option>
+          </select>
+          <button className={styles.primaryBtn} onClick={handleAdd} disabled={loading || savingPerms || !newEmail.trim() || newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase()}>
             Add
           </button>
-          <button className={styles.primaryBtn} onClick={onClose}>
+        </div>
+        {newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase() && (
+          <div style={{ color: '#e57373', fontSize: '0.95rem', marginTop: -8, marginBottom: 8 }}>
+            The project owner is already part of the group.
+          </div>
+        )}
+        {error && <div style={{ color: "red" }}>{error}</div>}
+        <div className={styles.footerButtons}>
+          <button className={styles.primaryBtn} onClick={onClose} disabled={loading || savingPerms}>
             Done
+          </button>
+          <button className={styles.primaryBtn} onClick={handleSavePerms} disabled={loading || savingPerms || Object.keys(permEdits).length === 0} style={{ marginLeft: 8 }}>
+            {savingPerms ? "Saving..." : "Save Perm"}
           </button>
         </div>
       </div>
