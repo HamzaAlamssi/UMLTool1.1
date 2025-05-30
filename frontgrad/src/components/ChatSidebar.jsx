@@ -27,20 +27,20 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
         setMessages(
           Array.isArray(data)
             ? data.map((msg) => ({
-                id: msg.id,
-                user: msg.sender?.username || "Unknown",
-                text: msg.content,
-                timestamp: msg.timestamp,
-              }))
+              id: msg.id,
+              user: msg.sender?.username || "Unknown",
+              text: msg.content,
+              timestamp: msg.timestamp,
+            }))
             : []
         );
       } else {
         console.error("Server returned error:", res.status);
       }
 
-    } catch (e) { 
+    } catch (e) {
       console.error("Error fetching messages:", e);
-       } finally {
+    } finally {
       setLoading(false);
     }
   }, [projectId]);
@@ -52,7 +52,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
-      debug: () => {},
+      debug: () => { },
     });
     wsClientRef.current = client;
     client.onConnect = () => {
@@ -80,6 +80,10 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
   // Always fetch messages when component mounts or projectId changes
   useEffect(() => {
     fetchMessages();
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 2000);
+    return () => clearInterval(interval);
   }, [fetchMessages]);
 
   useEffect(() => {
@@ -104,6 +108,7 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
           body: JSON.stringify(messagePayload),
         });
         setInput("");
+        fetchMessages(); // Fetch messages after sending via WebSocket
       } catch (err) {
         alert("WebSocket send failed: " + err.message);
       }
