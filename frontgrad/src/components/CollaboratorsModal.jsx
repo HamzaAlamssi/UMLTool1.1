@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./styles/components-styles/CollaboratorsModal.module.css";
 import { useProjectGroup } from "../context/ProjectGroupContext";
+import { useProjects } from "../context/ProjectContext";
 
 function CollaboratorsModal({ open, onClose, onAdd, project }) {
   const { group, members, removeMember, addMember, updateMemberPermission, loading, error, refreshGroup } = useProjectGroup();
@@ -8,8 +9,8 @@ function CollaboratorsModal({ open, onClose, onAdd, project }) {
   const [newPerm, setNewPerm] = useState("EDIT");
   const [permEdits, setPermEdits] = useState({}); // { email: permission }
   const [savingPerms, setSavingPerms] = useState(false);
-
-  const ownerEmail = project?.owner?.email;
+  const { user } = useProjects();
+  const ownerEmail = project?.ownerEmail || project?.owner?.email;
 
   React.useEffect(() => {
     // Reset edits when group changes
@@ -23,7 +24,12 @@ function CollaboratorsModal({ open, onClose, onAdd, project }) {
   };
 
   const handleAdd = async () => {
-    if (!newEmail.trim() || newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase()) return;
+    if (!newEmail.trim()) return;
+    if (user && newEmail.trim().toLowerCase() === user.email?.toLowerCase()) {
+      alert("You cannot add yourself as a collaborator.");
+      return;
+    }
+    if (newEmail.trim().toLowerCase() === ownerEmail?.toLowerCase()) return;
     await addMember({ email: newEmail.trim(), permission: newPerm });
     setNewEmail("");
     setNewPerm("EDIT");

@@ -6,7 +6,19 @@ import CollaboratorsModal from "../components/CollaboratorsModal";
 import UmlEditor from "./UMLEditor.jsx";
 import { useParams } from "react-router-dom";
 import { useProjects } from "../context/ProjectContext";
-import { ProjectGroupProvider, useProjectGroup } from "../context/ProjectGroupContext";
+import { ProjectGroupProvider, useProjectGroup, useProjectPermission } from "../context/ProjectGroupContext";
+
+function getOwnerPermission(user, project) {
+  if (!user || !project) return false;
+  // Accept both username and email for owner check
+  if (
+    (project.ownerUsername && user.username && project.ownerUsername === user.username) ||
+    (project.ownerEmail && user.email && project.ownerEmail.toLowerCase() === user.email.toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}
 
 function ProjectPageInner({ projectId }) {
   const editorRef = useRef(null);
@@ -19,6 +31,8 @@ function ProjectPageInner({ projectId }) {
   const [error, setError] = useState(null);
   const { group, loading: groupLoading } = useProjectGroup();
   const [modalState, setModalState] = useState(null); // 'share' | 'collab' | null
+  const isOwner = getOwnerPermission(user, project);
+  const permission = isOwner ? 'OWNER' : useProjectPermission(user, project, group);
 
   useEffect(() => {
     if (!projectId) return;
@@ -66,7 +80,8 @@ function ProjectPageInner({ projectId }) {
           else setModalState('share');
         }}
         projectName={project?.name}
-        projectOwner={project?.owner?.username}
+        projectOwner={project?.ownerUsername}
+        permission={permission}
       />
       <div style={{ padding: "1rem" }}>
         {project ? (
@@ -74,7 +89,7 @@ function ProjectPageInner({ projectId }) {
             <h2>
               Project: {project.name} (Type: {project.diagramType})
             </h2>
-            <div>Owner: {project.owner && project.owner.username}</div>
+            <div>Owner: {project.ownerUsername}</div>
             {project.groupName && (
               <div>
                 <strong>Group:</strong> {project.groupName}
@@ -90,25 +105,27 @@ function ProjectPageInner({ projectId }) {
         )}
       </div>
       <UmlEditor
-      ref={editorRef}
-      projectId={projectId}
-      initialModel={initialModel}
+        ref={editorRef}
+        projectId={projectId}
+        initialModel={initialModel}
+        permission={permission}
       />
-      {chatOpen && (
+      {chatOpen && (permission === 'OWNER' || permission === 'EDIT' || permission === 'READONLY') && (
         <ChatSidebar
           onClose={() => setChatOpen(false)}
           projectId={projectId}
           currentUser={user}
+          permission={permission}
         />
       )}
       <ShareModal
-        open={modalState === 'share'}
+        open={modalState === 'share' && permission === 'OWNER'}
         onClose={() => setModalState(null)}
         onManageCollaborators={() => setModalState('collab')}
         projectId={projectId}
       />
       <CollaboratorsModal
-        open={modalState === 'collab'}
+        open={modalState === 'collab' && permission === 'OWNER'}
         onClose={() => setModalState(null)}
         onAdd={() => setModalState('share')}
         project={project}
