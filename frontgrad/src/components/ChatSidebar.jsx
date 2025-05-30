@@ -88,12 +88,12 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
 
   // Send message via WebSocket or HTTP POST
   const sendMessage = async () => {
-    if (!input.trim() || !currentUser?.username || !projectId) {
+    if (!input.trim() || !currentUser?.email || !projectId) {
       alert("Missing message, user, or project info.");
       return;
     }
     const messagePayload = {
-      senderId: currentUser.username, // Use username for user identification
+      senderId: currentUser.email, // Use email for user identification
       projectId,
       content: input.trim(),
     };
@@ -109,13 +109,12 @@ function ChatSidebar({ onClose, projectId, currentUser }) {
       }
     } else {
       try {
-        const token = localStorage.getItem("authToken"); // Retrieve token from localStorage or another storage mechanism
         const res = await fetch("http://localhost:9000/api/messages/send", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Include the token in the Authorization header
+            "Content-Type": "application/json"
           },
+          credentials: "include",
           body: JSON.stringify(messagePayload),
         });
         if (res.ok) {
