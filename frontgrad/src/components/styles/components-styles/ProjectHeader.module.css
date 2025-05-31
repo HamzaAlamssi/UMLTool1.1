@@ -4,15 +4,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 2rem;
-  background: #f8fafc;
-  box-shadow: 0 2px 16px rgba(52, 137, 131, 0.1);
-  border-radius: 0 0 1.2rem 1.2rem;
+  background: #B4B4B4;
+  border-radius: 0;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: 70px;
   z-index: 100;
+  box-shadow: 0 2px 16px rgba(52, 137, 131, 0.1);
 }
 
 .leftSection,

@@ -6,7 +6,7 @@ import SockJS from 'sockjs-client';
 const styless = `
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: linear-gradient(120deg, #e0fdfa 0%, #d1fae5 100%);
+    background: linear-gradient(120deg, #f0f4f8 0%, #d9e8e6 100%);
     margin: 0;
     min-height: 100vh;
 }
@@ -22,29 +22,31 @@ body {
 #uml-canvas {
     border-radius: 18px;
     left: 10px;
-    border: 2px solid #2dd4bf;
-    background: #f7fdfc;
+    border: 2px solid #4caf93;
+    background: #ffffff;
     margin: 0 auto;
     display: inline-block;
-    box-shadow: 0 8px 32px #2dd4bf21;
+    box-shadow: 0 8px 32px rgba(76, 175, 147, 0.13);
 }
 #toolbar {
     position: fixed;
     top: 70px;
-    left: 5px;
-    transition: left 1s cubic-bezier(.4,1.6,.4,1);
-    width: 170px;
-    padding: 26px 16px 22px 16px;
-    background: #e0fdfa;
-    border-radius: 22px;
-    box-shadow: 0 6px 24px #2dd4bf25, 0 1.5px 8px #2dd4bf2A;
+    left: 0;
+    width: 220px;
+    background: #f9fafb;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    align-items: stretch;
+    padding: 2rem 1rem 1.5rem 1rem;
+    gap: 2rem;
     z-index: 10;
-    border: 1.5px solid #2dd4bf;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 1.2rem;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+    border: 1.5px solid #e0e0e0;
     max-height: 90vh;
     overflow-y: auto;
+    border-radius: 0; /* Set square edges for the toolbar */
 }
 #toolbar.toolbar-visible {
     left: 10px;
@@ -66,16 +68,16 @@ body {
 }
 .toolbar-label {
     font-size: 13px;
-    color: #065f46;
+    color: #2c3e50;
     font-weight: bold;
     letter-spacing: 0.02em;
     margin-bottom: 4px;
     margin-top: 2px;
     text-align: center;
 }
-.toolbar-btn-generate{
+.toolbar-btn-generate {
     font-size: 15px;
-    background: blue;
+    background: #4caf93;
     color: #fff;
     border: none;
     border-radius: 7px;
@@ -84,12 +86,12 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, box-shadow 0.15s;
-    box-shadow: 0 1.5px 5px #4668d911;
+    box-shadow: 0 1.5px 5px rgba(76, 175, 147, 0.2);
     outline: none;
 }
 .toolbar-btn {
     font-size: 15px;
-    background: linear-gradient(90deg, #34d399 70%, #2dd4bf 100%);
+    background: linear-gradient(90deg, #4caf93 70%, #81c7b8 100%);
     color: #fff;
     border: none;
     border-radius: 7px;
@@ -98,16 +100,16 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, box-shadow 0.15s;
-    box-shadow: 0 1.5px 5px #2dd4bf11;
+    box-shadow: 0 1.5px 5px rgba(76, 175, 147, 0.2);
     outline: none;
 }
 .toolbar-btn:active, .toolbar-btn:focus {
-    background: #bbf7d0;
-    color: #065f46;
+    background: #81c7b8;
+    color: #2c3e50;
 }
 .toolbar-btn:hover {
-    background: #99f6e4;
-    color: #047857;
+    background: #81c7b8;
+    color: #2c3e50;
 }
 .export-group {
     display: flex;
@@ -140,7 +142,7 @@ body {
     padding: 7px 8px;
     margin-bottom: 8px;
     border-radius: 6px;
-    border: 1.5px solid #99f6e4;
+    border: 1.5px solidrgb(160, 218, 206);
     background: #e0fdfa;
 }
 #uml-modal button {
@@ -150,7 +152,7 @@ body {
     border-radius: 7px;
     font-size: 15px;
     cursor: pointer;
-    background: #2dd4bf;
+    background: #2dd4bf33;
     color: #fff;
     font-weight: 500;
 }
@@ -167,7 +169,7 @@ body {
     font-size: 15px;
     padding: 2px 4px;
     border-radius: 6px;
-    border: 1.2px solid #99f6e4;
+    border: 1.2px solid #e0fdfa;
     margin-top: 5px;
     background: #e0fdfa;
     color: #047857;
@@ -185,7 +187,7 @@ body {
     width: 100%;
     padding: 6px 8px;
     border-radius: 6px;
-    border: 1.5px solid #99f6e4;
+    border: 1.5px solid #d1fae5;
     background: #e0fdfa;
     font-size: 14px;
     color: #047857;
@@ -204,6 +206,7 @@ const styles = {
     overflow: 'hidden',
   },
   canvas: {
+    
     border: '1.5px solid #3347b0',
     borderRadius: 10,
     background: '#fff',
@@ -225,13 +228,13 @@ const styles = {
     zIndex: 10,
   },
   button: {
+    background: '#a7f3d0', // Fixed syntax by wrapping the color value in quotes
+    color: '#065f46',
     padding: '7px 18px',
     border: 'none',
     borderRadius: 7,
     fontSize: 15,
     cursor: 'pointer',
-    background: '#4668D9',
-    color: '#fff',
     fontWeight: 500,
     marginBottom: 4,
   },
@@ -261,7 +264,7 @@ const styles = {
     fontSize: 16,
     padding: '6px 8px',
     borderRadius: 6,
-    border: '1.5px solid #d4defc',
+    border: '1.5px solid  #a7f3d0',
     background: '#eef2fd',
     marginBottom: 8,
   },

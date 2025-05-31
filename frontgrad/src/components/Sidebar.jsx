@@ -5,7 +5,7 @@ import NewDropdown from "./NewDropdown";
 import { FiHome, FiClock, FiLayers, FiUsers, FiLogOut } from "react-icons/fi";
 import { useProjects } from "../context/ProjectContext";
 
-function Sidebar({ onLogout }) {
+function Sidebar() {
   const navigate = useNavigate();
   const { refresh } = useProjects();
 
@@ -18,7 +18,7 @@ function Sidebar({ onLogout }) {
         method: "POST",
         credentials: "include",
       });
-    } catch (e) {
+    } catch {
       // Ignore errors, just proceed
     }
     // Optionally clear user state

@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./styles/components-styles/Header.module.css";
 import { useProjects } from "../context/ProjectContext";
 import { useNavigate } from "react-router-dom";
-import { FiUser } from "react-icons/fi";
+import { FiUser, FiHelpCircle } from "react-icons/fi";
 
 
 function Header() {
@@ -42,14 +42,7 @@ function Header() {
       </div>
       <div className={styles.headerButtons}>
         <button className={styles.iconButton}>
-          <img
-            src="/image/notifications.png"
-            alt="Notifications"
-            className={styles.buttonIcon}
-          />
-        </button>
-        <button className={styles.iconButton}>
-          <img src="/image/help.png" alt="Help" className={styles.buttonIcon} />
+          <FiHelpCircle size={22} color="#348983" />
         </button>
       </div>
     </div>
