@@ -20,4 +20,12 @@ public class TemplateService {
         return templateRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Template not found"));
     }
+
+    public Template saveTemplate(Template template) {
+        return templateRepository.save(template);
+    }
+
+    public void deleteTemplate(Long id) {
+        templateRepository.deleteById(id);
+    }
 }

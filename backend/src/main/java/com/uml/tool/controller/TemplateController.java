@@ -52,4 +52,23 @@ public class TemplateController {
                 .build();
         return projectService.saveProject(project);
     }
+
+    @PostMapping
+    public Template saveTemplate(@RequestBody Template template) {
+        return templateService.saveTemplate(template);
+    }
+
+    @PutMapping("/{id}")
+    public Template updateTemplate(@PathVariable Long id, @RequestBody Template updated) {
+        Template template = templateService.getTemplateById(id);
+        template.setName(updated.getName());
+        template.setType(updated.getType());
+        template.setDiagramJson(updated.getDiagramJson());
+        return templateService.saveTemplate(template);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteTemplate(@PathVariable Long id) {
+        templateService.deleteTemplate(id);
+    }
 }

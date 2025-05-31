@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/ManageUserProfilePage.module.css";
 import { FaCamera, FaSave, FaPencilAlt } from "react-icons/fa";
+import { useAdmin } from "../context/AdminContext";
 
 const occupationOptions = [
   "Student",
@@ -17,6 +18,8 @@ const ProfileDashboard = () => {
   const params = new URLSearchParams(location.search);
   const userEmail = params.get("email");
 
+  const { updateUser, loading, error } = useAdmin();
+
   const [userData, setUserData] = useState({
     username: "",
     firstName: "",
@@ -27,7 +30,6 @@ const ProfileDashboard = () => {
   });
   const [password, setPassword] = useState(""); // Separate state for password
 
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editField, setEditField] = useState(null);
   const [originalEmail, setOriginalEmail] = useState(""); // Track original email
@@ -50,7 +52,7 @@ const ProfileDashboard = () => {
         setPassword(""); // Always clear password field on load
       })
       .catch((err) => {
-        setError(err?.toString() || "Failed to fetch user info.");
+        setSuccess("");
       });
   }, [userEmail]);
 
@@ -58,7 +60,7 @@ const ProfileDashboard = () => {
     if (success || error) {
       const timer = setTimeout(() => {
         setSuccess("");
-        setError("");
+        // setError("");
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -86,33 +88,17 @@ const ProfileDashboard = () => {
 
   // In handleSave, only check for duplicate email/username if changed
   const handleSave = async () => {
-    setError("");
     setSuccess("");
     try {
-      const res = await fetch(
-        `http://localhost:9000/api/users/${encodeURIComponent(userData.email)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            ...userData,
-            profileImage: userData.image,
-            ...(password && { password }),
-          }),
-        }
-      );
-      if (res.ok) {
-        setSuccess("Profile updated successfully!");
-        setPassword(""); // Clear password after save
-      } else if (res.status === 400) {
-        const data = await res.json();
-        setError(Object.values(data).join(" "));
-      } else {
-        setError(await res.text());
-      }
+      await updateUser(userData.email, {
+        ...userData,
+        profileImage: userData.image,
+        ...(password && { password }),
+      });
+      setSuccess("Profile updated successfully!");
+      setPassword(""); // Clear password after save
     } catch (err) {
-      setError(err.message);
+      setSuccess(err.message);
     }
   };
 
@@ -293,8 +279,8 @@ const ProfileDashboard = () => {
                                         }
                                       }
                                       if (othersWithEmail.length > 0) {
-                                        setError("This email is already taken by another user.");
-                                        setTimeout(() => setError(""), 3000);
+                                        setSuccess("This email is already taken by another user.");
+                                        setTimeout(() => setSuccess(""), 3000);
                                         return;
                                       }
                                     }
@@ -345,18 +331,20 @@ const ProfileDashboard = () => {
                 )
               )}
 
+              {success && (
+                <div className={styles.passwordStrength} style={{ color: success.includes("successfully") ? "green" : "red" }}>
+                  {success}
+                </div>
+              )}
               {error && (
                 <div className={styles.passwordStrength} style={{ color: "red" }}>
                   {error}
                 </div>
               )}
-              {success && (
-                <div style={{ color: "green", marginTop: "1rem" }}>{success}</div>
-              )}
               <button
                 className={styles.saveBtn}
                 onClick={handleSave}
-                disabled={false}
+                disabled={loading}
                 style={{
                   opacity: 1,
                   pointerEvents: 'auto',

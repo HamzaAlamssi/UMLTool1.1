@@ -83,12 +83,6 @@ function AdminLoginPage() {
         >
           Back to User Login
         </button>
-        <button
-          style={{ marginTop: 8, fontSize: "0.9rem", background: "none", border: "none", color: "#348983", cursor: "pointer", textDecoration: "underline" }}
-          onClick={() => navigate("/AdminRegister")}
-        >
-          Register as Admin
-        </button>
       </div>
     </div>
   );

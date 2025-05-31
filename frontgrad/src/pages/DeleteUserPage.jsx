@@ -2,39 +2,17 @@ import React, { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/DeleteUserPage.module.css";
 import { FaUsers, FaSearch } from "react-icons/fa";
+import { useAdmin } from "../context/AdminContext";
 
 const DeleteUserPage = () => {
-  const [users, setUsers] = useState([]);
+  const { users, fetchUsers, deleteUsers, loading, error } = useAdmin();
   const [selected, setSelected] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
-
-  const fetchUsers = async (query = "") => {
-    setLoading(true);
-    setError("");
-    try {
-      const url = query
-        ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-          query
-        )}`
-        : "http://localhost:9000/api/users";
-      const res = await fetch(url, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      } else {
-        setError(await res.text());
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line
   }, []);
 
   const handleSearch = (e) => {
@@ -50,26 +28,18 @@ const DeleteUserPage = () => {
 
   const deleteSelected = async () => {
     if (!window.confirm("Are you sure you want to delete selected users?")) return;
-    setError("");
     setSuccess("");
     try {
-      // Call correct endpoint for each selected user (now /api/users/:email)
-      await Promise.all(
-        selected.map(async (email) => {
-          const res = await fetch(`http://localhost:9000/api/users/${encodeURIComponent(email)}`, {
-            method: "DELETE",
-            credentials: "include",
-          });
-          if (!res.ok) throw new Error(await res.text());
-        })
-      );
+      await deleteUsers(selected);
       setSuccess("Users deleted successfully!");
       setSelected([]);
-      fetchUsers(searchTerm);
     } catch (err) {
-      setError(err.message);
+      // error is handled by context
     }
   };
+
+  // Filter users to only show those with role USER (not ADMIN)
+  const filteredUsers = users.filter(u => (u.role || u.roles || '').toString().toUpperCase().includes('USER') && !(u.role || u.roles || '').toString().toUpperCase().includes('ADMIN'));
 
   return (
     <div className={styles.container}>
@@ -103,7 +73,7 @@ const DeleteUserPage = () => {
                   display: "inline-block",
                 }}
               >
-                {users.length}
+                {filteredUsers.length}
               </span>
             </span>
             <div
@@ -151,7 +121,7 @@ const DeleteUserPage = () => {
               <div className={styles.emptyState}>No users found. Try adjusting your search or add a new user!</div>
             ) : (
               <div className={styles.usersGrid}>
-                {users.reduce((rows, user, idx) => {
+                {filteredUsers.reduce((rows, user, idx) => {
                   if (idx % 2 === 0) rows.push([]);
                   rows[rows.length - 1].push(user);
                   return rows;
@@ -204,7 +174,7 @@ const DeleteUserPage = () => {
                       </div>
                     ))}
                     {row.length === 1 && <div className={styles.userCard} style={{ visibility: 'hidden' }} />} {/* For alignment if odd */}
-                    {rowIdx !== Math.floor(users.length / 2) && <hr className={styles.rowDivider} />}
+                    {rowIdx !== Math.floor(filteredUsers.length / 2) && <hr className={styles.rowDivider} />}
                   </div>
                 ))}
               </div>
@@ -215,8 +185,8 @@ const DeleteUserPage = () => {
               {selected.length} user(s) selected
             </div>
             {selected.length > 0 && (
-              <button className={styles.deleteBtn} onClick={deleteSelected}>
-                Delete Selected
+              <button className={styles.deleteBtn} onClick={deleteSelected} disabled={loading}>
+                {loading ? "Deleting..." : "Delete Selected"}
               </button>
             )}
             {success && (

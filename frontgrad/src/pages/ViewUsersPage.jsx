@@ -2,43 +2,24 @@ import React, { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/DeleteUserPage.module.css";
 import { FaUsers, FaSearch } from "react-icons/fa";
+import { useAdmin } from "../context/AdminContext";
 
 const ViewUsersPage = () => {
-  const [users, setUsers] = useState([]);
+  const { users, fetchUsers, loading, error } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const fetchUsers = async (query = "") => {
-    setLoading(true);
-    setError("");
-    try {
-      const url = query
-        ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-          query
-        )}`
-        : "http://localhost:9000/api/users";
-      const res = await fetch(url, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      } else {
-        setError(await res.text());
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line
   }, []);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     fetchUsers(e.target.value);
   };
+
+  // Filter users to only show those with role USER
+  const filteredUsers = users.filter(u => (u.role || u.roles || '').toString().toUpperCase().includes('USER') && !(u.role || u.roles || '').toString().toUpperCase().includes('ADMIN'));
 
   return (
     <div className={styles.container}>
@@ -72,7 +53,7 @@ const ViewUsersPage = () => {
                   display: "inline-block",
                 }}
               >
-                {users.length}
+                {filteredUsers.length}
               </span>
             </span>
             <div
@@ -118,14 +99,13 @@ const ViewUsersPage = () => {
               <div className={styles.emptyState}>
                 Oops! Something went wrong: {error}
               </div>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <div className={styles.emptyState}>
                 No users found. Try adjusting your search or add a new user!
               </div>
             ) : (
               <div className={styles.usersGrid}>
-
-                {users
+                {filteredUsers
                   .reduce((rows, user, idx) => {
                     if (idx % 2 === 0) rows.push([]);
                     rows[rows.length - 1].push(user);
@@ -166,9 +146,9 @@ const ViewUsersPage = () => {
                           className={styles.userCard}
                           style={{ visibility: "hidden" }}
                         />
-                      )}{" "}
+                      )} {" "}
                       {/* For alignment if odd */}
-                      {rowIdx !== Math.floor(users.length / 2) && (
+                      {rowIdx !== Math.floor(filteredUsers.length / 2) && (
                         <hr className={styles.rowDivider} />
                       )}
                     </div>
