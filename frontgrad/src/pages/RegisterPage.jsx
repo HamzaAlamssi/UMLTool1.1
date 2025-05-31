@@ -4,12 +4,15 @@ function RegisterPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [occupation, setOccupation] = useState("");
   const [message, setMessage] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const registerData = { username, email, password };
+    const registerData = { username, email, password, firstName, lastName, occupation };
 
     try {
       const response = await fetch("http://localhost:9000/auth/register", {
@@ -47,6 +50,24 @@ function RegisterPage() {
           <div className={styles.inputGroup}>
             <input
               type="text"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -78,6 +99,19 @@ function RegisterPage() {
               id="togglePassword"
               onClick={() => setIsPasswordVisible(!isPasswordVisible)}
             />
+          </div>
+          <div className={styles.inputGroup}>
+            <select
+              value={occupation}
+              onChange={e => setOccupation(e.target.value)}
+              className={styles.selectInput}
+            >
+              <option value="">Select Occupation (optional)</option>
+              <option value="Student">Student</option>
+              <option value="Teacher">Teacher</option>
+              <option value="Management">Management</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <button type="submit" className={styles.loginButton}>
             Sign Up

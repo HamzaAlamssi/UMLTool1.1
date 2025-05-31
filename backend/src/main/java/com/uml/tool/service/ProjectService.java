@@ -4,10 +4,13 @@ import com.uml.tool.model.Project;
 import com.uml.tool.model.UserLoginDetails;
 import com.uml.tool.repository.ProjectRepository;
 import com.uml.tool.repository.UserRepository;
+import com.uml.tool.repository.MessageRepository;
+import com.uml.tool.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +21,10 @@ public class ProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private MessageRepository messageRepository;
+    @Autowired
+    private GroupRepository groupRepository;
 
     public Project createProject(String name, String ownerEmail) {
         UserLoginDetails owner = userRepository.findByEmail(ownerEmail)
@@ -25,7 +32,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .name(name)
                 .owner(owner)
-                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") // <-- valid Apollon model
+                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -62,12 +69,19 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    @Transactional
     public void deleteProject(Long id) {
         if (!projectRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found");
         }
         try {
+            Project project = projectRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+            messageRepository.deleteAllByProject(project);
+            groupRepository.deleteByProjectId(id);
             projectRepository.deleteById(id);
+        } catch (ResponseStatusException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Failed to delete project: " + ex.getMessage());
         }

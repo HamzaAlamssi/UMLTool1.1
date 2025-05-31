@@ -88,4 +88,63 @@ class TemplateControllerTest {
         mockMvc.perform(post("/api/templates/1/create-project?projectName=Test&ownerEmail=a@b.com"))
                 .andExpect(status().isInternalServerError());
     }
+
+    @Test
+    void testCreateProjectFromTemplate_OwnerNotFound() throws Exception {
+        Template template = new Template();
+        template.setDiagramJson("{}\n");
+        when(templateService.getTemplateById(anyLong())).thenReturn(template);
+        when(userService.getUserByEmail(any())).thenReturn(Optional.empty());
+        mockMvc.perform(post("/api/templates/1/create-project?projectName=Test&ownerEmail=a@b.com"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void testSaveTemplate() throws Exception {
+        Template template = new Template();
+        template.setId(1L);
+        template.setName("Test Template");
+        template.setType("UML");
+        template.setDiagramJson("{}\n");
+        when(templateService.saveTemplate(any(Template.class))).thenReturn(template);
+        mockMvc.perform(post("/api/templates")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"id\":1," +
+                        "\"name\":\"Test Template\"," +
+                        "\"type\":\"UML\"," +
+                        "\"diagramJson\":\"{}\\n\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testUpdateTemplate() throws Exception {
+        Template existing = new Template();
+        existing.setId(1L);
+        existing.setName("Old");
+        existing.setType("OLD");
+        existing.setDiagramJson("old");
+        Template updated = new Template();
+        updated.setId(1L);
+        updated.setName("New");
+        updated.setType("NEW");
+        updated.setDiagramJson("new");
+        when(templateService.getTemplateById(1L)).thenReturn(existing);
+        when(templateService.saveTemplate(any(Template.class))).thenReturn(updated);
+        mockMvc.perform(put("/api/templates/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"id\":1," +
+                        "\"name\":\"New\"," +
+                        "\"type\":\"NEW\"," +
+                        "\"diagramJson\":\"new\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteTemplate() throws Exception {
+        doNothing().when(templateService).deleteTemplate(1L);
+        mockMvc.perform(delete("/api/templates/1"))
+                .andExpect(status().isOk());
+    }
 }

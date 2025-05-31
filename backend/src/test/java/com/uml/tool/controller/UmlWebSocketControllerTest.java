@@ -21,18 +21,20 @@ class UmlWebSocketControllerTest {
     }
 
     @Test
-    void testHandleUmlAction() {
-        // You can add more detailed tests for the WebSocket logic if needed
-        // Example: umlWebSocketController.handleUmlAction(new
-        // com.uml.tool.DTO.UmlActionDTO());
-    }
-
-    @Test
     void testHandleUmlAction_Error() {
         doThrow(new RuntimeException("error"))
                 .when(messagingTemplate)
                 .convertAndSend(any(String.class), any(Object.class));
-        // Should not throw, but will log error
         umlWebSocketController.handleUmlAction(new com.uml.tool.DTO.UmlActionDTO());
+    }
+
+    @Test
+    void testHandleUmlAction_SendsToCorrectTopic() {
+        com.uml.tool.DTO.UmlActionDTO action = new com.uml.tool.DTO.UmlActionDTO();
+        action.setType("add");
+        action.setElementType("class");
+        action.setProjectId(42L);
+        umlWebSocketController.handleUmlAction(action);
+        verify(messagingTemplate, times(1)).convertAndSend("/topic/uml-project-42", action);
     }
 }

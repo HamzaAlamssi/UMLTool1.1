@@ -139,3 +139,22 @@
   letter-spacing: 0.01em;
   vertical-align: middle;
 }
+
+body.dark-mode {
+  background: #1a232a;
+  color: #e0e0e0;
+}
+
+.dark-mode .header {
+  background: #232c33;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.18);
+}
+
+.dark-mode .userEmail {
+  color: #e0e0e0;
+}
+
+.dark-mode .iconButton:hover {
+  background: #2d3a40;
+  border: 1px solid #5eead4;
+}

@@ -270,7 +270,7 @@ const styles = {
   },
 };
 
-const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
+const UmlEditor = forwardRef(({ projectId, initialModel, permission }, ref) => {
 
   // === State ===
   const canvasRef = useRef(null);
@@ -396,6 +396,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
   };
 
   function handleCanvasMouseDown(e) {
+    if (!canEdit) return;
     if (relationMode) return; // Don't drag in relation mode
     const rect = canvasRef.current.getBoundingClientRect();
     const mx = e.clientX - rect.left;
@@ -430,6 +431,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
 
   // Hover logic: track which element is hovered
   function handleCanvasMouseMove(e) {
+    if (!canEdit) return;
     let rect = canvasRef.current.getBoundingClientRect();
     let mx = e.clientX - rect.left;
     let my = e.clientY - rect.top;
@@ -470,6 +472,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
   }
 
   function handleCanvasMouseUp() {
+    if (!canEdit) return;
     if (dragTarget !== null) {
       const obj = classes.find(c => c.id === dragTarget);
       if (obj && projectId) {
@@ -1486,6 +1489,7 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
   }
 
   function handleCanvasClick(e) {
+    if (!canEdit) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
@@ -1516,13 +1520,13 @@ const UmlEditor = forwardRef(({ projectId, initialModel }, ref) => {
       }
       if (mx >= deleteIcon.x && mx <= deleteIcon.x + deleteIcon.w && my >= deleteIcon.y && my <= deleteIcon.y + deleteIcon.h) {
         setClasses(prev => prev.filter(c => c.id !== obj.id));
-        setRelationships(prev => prev.filter(r => r.id !== rel.id)); // Filter by ID
-sendUmlAction({
-  type: 'delete',
-  elementType: 'relationship',
-  payload: rel, // Ensure rel includes id
-  projectId,
-});
+        setRelationships(prev => prev.filter(r => r.fromId !== obj.id && r.toId !== obj.id));
+        sendUmlAction({
+          type: 'delete',
+          elementType: 'class',
+          payload: obj,
+          projectId,
+        });
         return;
       }
     }
@@ -1684,7 +1688,7 @@ sendUmlAction({
         if (mx >= obj.x + 18 && mx <= obj.x + obj.width - 18 && my >= attrY - 12 && my <= attrY + 8) {
           showModal('Add Attribute', '', ({ name, visibility }) => {
             if (!isValidElementName(name)) {
-              alert('Invalid attribute name! Name must not be empty, start with a number, or start with: ' + forbiddenStartChars.join(' '));
+              alert('Invalid attribute name! Name must not be empty, start with a number, contain spaces, or start with: ' + forbiddenStartChars.join(' '));
               return;
             }
             setClasses(prev => prev.map(c =>
@@ -1742,7 +1746,7 @@ sendUmlAction({
         if (mx >= obj.x + 18 && mx <= obj.x + obj.width - 18 && my >= methodY - 12 && my <= methodY + 8) {
           showModal('Add Method', '', ({ name, visibility }) => {
             if (!isValidElementName(name)) {
-              alert('Invalid method name! Name must not be empty, start with a number, or start with: ' + forbiddenStartChars.join(' '));
+              alert('Invalid method name! Name must not be empty, start with a number, contain spaces, or start with: ' + forbiddenStartChars.join(' '));
               return;
             }
             setClasses(prev => prev.map(c =>
@@ -1852,20 +1856,25 @@ sendUmlAction({
     if (!name || typeof name !== 'string') return false;
     const trimmed = name.trim();
     if (!trimmed) return false;
-    if (/^\d/.test(trimmed)) return false; // starts with a number
+    if (/\d/.test(trimmed[0])) return false; // starts with a number
     if (forbiddenStartChars.includes(trimmed[0])) return false;
+    if (/\s/.test(trimmed)) return false; // no spaces allowed
     return true;
   };
 
+  // Only allow editing if permission is OWNER or EDIT
+  const canEdit = permission === 'OWNER' || permission === 'EDIT';
+
   const handleAddClass = () => {
+    if (!canEdit) return;
     showModal('Class Name', '', name => {
       if (!isValidElementName(name)) {
-        alert('Class name must not be empty or only numbers.');
+        alert('Class name must not be empty, only numbers, or contain spaces.');
         return;
       }
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newClass = UmlClass(x, y, name);
+      const newClass = UmlClass(x, y, name.trim());
       setClasses(prev => [...prev, newClass]);
       sendUmlAction({
         type: 'add',
@@ -1877,11 +1886,12 @@ sendUmlAction({
   };
 
   const handleAddActor = () => {
+    if (!canEdit) return;
     showModal('Actor Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newActor = Actor(x, y, name);
+      const newActor = Actor(x, y, name.trim());
       setClasses(prev => [...prev, newActor]);
       sendUmlAction({
         type: 'add',
@@ -1892,11 +1902,12 @@ sendUmlAction({
     });
   };
   const handleAddUseCase = () => {
+    if (!canEdit) return;
     showModal('Use Case Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newUseCase = UseCase(x, y, name);
+      const newUseCase = UseCase(x, y, name.trim());
       setClasses(prev => [...prev, newUseCase]);
       sendUmlAction({
         type: 'add',
@@ -1907,11 +1918,12 @@ sendUmlAction({
     });
   };
   const handleAddSystem = () => {
+    if (!canEdit) return;
     showModal('System Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 400;
       const y = 100 + Math.random() * 200;
-      const newSystem = SystemBoundary(x, y, name);
+      const newSystem = SystemBoundary(x, y, name.trim());
       setClasses(prev => [...prev, newSystem]);
       sendUmlAction({
         type: 'add',
@@ -1923,11 +1935,12 @@ sendUmlAction({
   };
 
   const handleAddAction = () => {
+    if (!canEdit) return;
     showModal('Action Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newAction = ActionNode(x, y, name);
+      const newAction = ActionNode(x, y, name.trim());
       setClasses(prev => [...prev, newAction]);
       sendUmlAction({
         type: 'add',
@@ -1938,6 +1951,7 @@ sendUmlAction({
     });
   };
   const handleAddInitial = () => {
+    if (!canEdit) return;
     const x = 100 + Math.random() * 600;
     const y = 100 + Math.random() * 400;
     const newInitialNode = InitialNode(x,y);
@@ -1950,6 +1964,7 @@ sendUmlAction({
     });
   };
   const handleAddFinal = () => {
+    if (!canEdit) return;
     const x = 100 + Math.random() * 600;
     const y = 100 + Math.random() * 400;
     const newFinalNode = FinalNode(x,y);
@@ -1962,6 +1977,7 @@ sendUmlAction({
     });
   };
   const handleAddFork = () => {
+    if (!canEdit) return;
     showModal('Fork/Join Orientation (h/v)', 'h', dir => {
       const orientation = (dir && dir.toLowerCase().startsWith('v')) ? 'vertical' : 'horizontal';
       const w = orientation === 'horizontal' ? 80 : 12;
@@ -1979,6 +1995,7 @@ sendUmlAction({
     });
   };
   const handleAddDecision = () => {
+    if (!canEdit) return;
     const x = 100 + Math.random() * 600;
     const y = 100 + Math.random() * 400;
     const newDecisionNode = DecisionNode(x,y);
@@ -1991,11 +2008,12 @@ sendUmlAction({
     });
   };
   const handleAddNode = () => {
+    if (!canEdit) return;
     showModal('Node Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newNodeElement = NodeElement(x,y,name);
+      const newNodeElement = NodeElement(x,y,name.trim());
       setClasses(prev => [...prev, newNodeElement]);
       sendUmlAction({
         type: 'add',
@@ -2006,11 +2024,12 @@ sendUmlAction({
     });
   };
   const handleAddArtifact = () => {
+    if (!canEdit) return;
     showModal('Artifact Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newArtifactElement = ArtifactElement(x,y,name);
+      const newArtifactElement = ArtifactElement(x,y,name.trim());
       setClasses(prev => [...prev, newArtifactElement]);
       sendUmlAction({
         type: 'add',
@@ -2021,11 +2040,12 @@ sendUmlAction({
     });
   };
   const handleAddDevice = () => {
+    if (!canEdit) return;
     showModal('Device Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newDeviceElement = DeviceElement(x,y,name);
+      const newDeviceElement = DeviceElement(x,y,name.trim());
       setClasses(prev => [...prev, newDeviceElement]);
       sendUmlAction({
         type: 'add',
@@ -2036,11 +2056,12 @@ sendUmlAction({
     });
   };
   const handleAddComponent = () => {
+    if (!canEdit) return;
     showModal('Component Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newComponentElement = ComponentElement(x, y, name);
+      const newComponentElement = ComponentElement(x, y, name.trim());
       setClasses(prev => [...prev, newComponentElement]);
       sendUmlAction({
         type: 'add',
@@ -2051,11 +2072,12 @@ sendUmlAction({
     });
   };
   const handleAddInterface = () => {
+    if (!canEdit) return;
     showModal('Interface Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newInterface = InterfaceElement(x, y, name);
+      const newInterface = InterfaceElement(x, y, name.trim());
       setClasses(prev => [...prev, newInterface]);
       sendUmlAction({
         type: 'add',
@@ -2066,11 +2088,12 @@ sendUmlAction({
     });
   };
   const handleAddPort = () => {
+    if (!canEdit) return;
     showModal('Port Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newPortElement = PortElement(x, y, name);
+      const newPortElement = PortElement(x, y, name.trim());
       setClasses(prev => [...prev, newPortElement]);
       sendUmlAction({
         type: 'add',
@@ -2082,6 +2105,7 @@ sendUmlAction({
   };
 
   const handleAddFlowStartEnd = () => {
+    if (!canEdit) return;
     showModal('Start/End Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
@@ -2092,6 +2116,7 @@ sendUmlAction({
     });
   };
   const handleAddFlowProcess = () => {
+    if (!canEdit) return;
     showModal('Process Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
@@ -2102,6 +2127,7 @@ sendUmlAction({
     });
   };
   const handleAddFlowDecision = () => {
+    if (!canEdit) return;
     showModal('Decision Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
@@ -2112,6 +2138,7 @@ sendUmlAction({
     });
   };
   const handleAddFlowInputOutput = () => {
+    if (!canEdit) return;
     showModal('Input/Output Name', '', name => {
       if (!name) return;
       const x = 100 + Math.random() * 600;
@@ -2431,8 +2458,8 @@ function generateRelationshipId() {
     const classMatch = block.match(/class\s+(\w+)(?:\s+extends\s+(\w+))?/);
     if (!classMatch) return;
     
-    const className = classMatch[1];
-    const parentClass = classMatch[2];
+    const className = classMatch[1].trim();
+    const parentClass = classMatch[2] && classMatch[2].trim();
     const classBody = block.slice(classMatch.index + classMatch[0].length);
     
     // Create new class
@@ -2462,7 +2489,7 @@ function generateRelationshipId() {
     let fieldMatch;
     while ((fieldMatch = fieldRegex.exec(classBody)) !== null) {
       newClass.attributes.push({
-        name: `${fieldMatch[3]}: ${fieldMatch[2]}`,
+        name: `${fieldMatch[3].trim()}: ${fieldMatch[2].trim()}`,
         visibility: fieldMatch[1].toLowerCase()
       });
     }
@@ -2479,15 +2506,15 @@ while ((methodMatch = methodRegex.exec(classBody)) !== null) {
     .map(p => {
       const parts = p.split(/\s+/).filter(Boolean);
       return {
-        name: parts[1] || 'param',
-        type: parts[0] || 'Object'
+        name: (parts[1] || 'param').trim(),
+        type: (parts[0] || 'Object').trim()
       };
     });
 
   const paramString = params.map(p => `${p.name}: ${p.type}`).join(', ');
   
   newClass.methods.push({
-    name: `${methodMatch[3]}${params.length ? `(${paramString})` : '()'}: ${methodMatch[2]}`,
+    name: `${methodMatch[3].trim()}${params.length ? `(${paramString})` : '()'}: ${methodMatch[2].trim()}`,
     visibility: methodMatch[1].toLowerCase()
   });
 }
@@ -2624,60 +2651,60 @@ while ((methodMatch = methodRegex.exec(classBody)) !== null) {
   return (
       <>
         <style>{styless}</style>
-        <div id="canvas-container"/*style={styles.container}*/>
+        <div id="canvas-container">
           <canvas
               id="uml-canvas"
               ref={canvasRef}
               width={1600}
               height={800}
               style={styles.canvas}
-              onClick={handleCanvasClick}
+              onClick={canEdit ? handleCanvasClick : undefined}
           />
-          <div id="toolbar" /*style={styles.toolbar}*/>
+          <div id="toolbar">
             <div className="toolbar-group">
               <span className="toolbar-label">Class</span>
-              <button /*style={styles.button}*/ className="toolbar-btn" onClick={handleAddClass}>Add Class</button>
+              <button className="toolbar-btn" onClick={handleAddClass} disabled={!canEdit}>Add Class</button>
             </div>
             <div className="toolbar-group">
               <span  className="toolbar-label">Use Case</span>
-              <button className="toolbar-btn" onClick={handleAddActor}>Add Actor</button>
-              <button className="toolbar-btn" onClick={handleAddUseCase}>Add Use Case</button>
-              <button className="toolbar-btn" onClick={handleAddSystem}>Add System</button>
+              <button className="toolbar-btn" onClick={handleAddActor} disabled={!canEdit}>Add Actor</button>
+              <button className="toolbar-btn" onClick={handleAddUseCase} disabled={!canEdit}>Add Use Case</button>
+              <button className="toolbar-btn" onClick={handleAddSystem} disabled={!canEdit}>Add System</button>
             </div>
             <div className="toolbar-group">
             <span className="toolbar-label">Activity</span>
-            <button className="toolbar-btn" onClick={handleAddAction}>Add Action</button>
-            <button className="toolbar-btn" onClick={handleAddInitial}>Add Initial Node</button>
-            <button className="toolbar-btn" onClick={handleAddFinal}>Add Final Node</button>
-            <button className="toolbar-btn" onClick={handleAddFork}>Add Fork/Join</button>
-            <button className="toolbar-btn" onClick={handleAddDecision}>Add Decision</button>
+            <button className="toolbar-btn" onClick={handleAddAction} disabled={!canEdit}>Add Action</button>
+            <button className="toolbar-btn" onClick={handleAddInitial} disabled={!canEdit}>Add Initial Node</button>
+            <button className="toolbar-btn" onClick={handleAddFinal} disabled={!canEdit}>Add Final Node</button>
+            <button className="toolbar-btn" onClick={handleAddFork} disabled={!canEdit}>Add Fork/Join</button>
+            <button className="toolbar-btn" onClick={handleAddDecision} disabled={!canEdit}>Add Decision</button>
           </div>
           <div className="toolbar-group">
             <span className="toolbar-label">Deployment</span>
-            <button className="toolbar-btn" onClick={handleAddNode}>Add Node</button>
-            <button className="toolbar-btn" onClick={handleAddArtifact}>Add Artifact</button>
-            <button className="toolbar-btn" onClick={handleAddDevice}>Add Device</button>
+            <button className="toolbar-btn" onClick={handleAddNode} disabled={!canEdit}>Add Node</button>
+            <button className="toolbar-btn" onClick={handleAddArtifact} disabled={!canEdit}>Add Artifact</button>
+            <button className="toolbar-btn" onClick={handleAddDevice} disabled={!canEdit}>Add Device</button>
           </div>
           <div className="toolbar-group">
             <span className="toolbar-label">Component</span>
-            <button className="toolbar-btn" onClick={handleAddComponent}>Add Component</button>
-            <button className="toolbar-btn" onClick={handleAddInterface}>Add Interface</button>
-            <button className="toolbar-btn" onClick={handleAddPort}>Add Port</button>
-            <button className="toolbar-btn" onClick={openCompRelModal}>Add Component Relationship</button>
+            <button className="toolbar-btn" onClick={handleAddComponent} disabled={!canEdit}>Add Component</button>
+            <button className="toolbar-btn" onClick={handleAddInterface} disabled={!canEdit}>Add Interface</button>
+            <button className="toolbar-btn" onClick={handleAddPort} disabled={!canEdit}>Add Port</button>
+            <button className="toolbar-btn" onClick={openCompRelModal} disabled={!canEdit}>Add Component Relationship</button>
           </div>
             <div className="toolbar-group">
               <span className="toolbar-label">Flowchart</span>
-              <button className="toolbar-btn" onClick={handleAddFlowStartEnd}>Start/End</button>
-              <button className="toolbar-btn" onClick={handleAddFlowProcess}>Process</button>
-              <button className="toolbar-btn" onClick={handleAddFlowDecision}>Decision</button>
-              <button className="toolbar-btn" onClick={handleAddFlowInputOutput}>Input/Output</button>
+              <button className="toolbar-btn" onClick={handleAddFlowStartEnd} disabled={!canEdit}>Start/End</button>
+              <button className="toolbar-btn" onClick={handleAddFlowProcess} disabled={!canEdit}>Process</button>
+              <button className="toolbar-btn" onClick={handleAddFlowDecision} disabled={!canEdit}>Decision</button>
+              <button className="toolbar-btn" onClick={handleAddFlowInputOutput} disabled={!canEdit}>Input/Output</button>
             </div>
             <div className="toolbar-group">
               <label id="relation-mode-label">
-                <input type="checkbox" checked={relationMode} onChange={handleRelationModeToggle} />
+                <input type="checkbox" checked={relationMode} onChange={handleRelationModeToggle} disabled={!canEdit} />
                 <span style={{marginLeft:5}}>Relationship</span>
               </label>
-              <select id="relation-type" value={pendingRelation.type} onChange={handleRelationTypeChange}>
+              <select id="relation-type" value={pendingRelation.type} onChange={handleRelationTypeChange} disabled={!canEdit}>
                 <option value="association">Association</option>
                 <option value="aggregation">Aggregation</option>
                 <option value="composition">Composition</option>

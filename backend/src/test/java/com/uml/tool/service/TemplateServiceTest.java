@@ -44,4 +44,21 @@ class TemplateServiceTest {
         when(templateRepository.findById(anyLong())).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> templateService.getTemplateById(1L));
     }
+
+    @Test
+    void testSaveTemplate() {
+        Template template = new Template();
+        when(templateRepository.save(template)).thenReturn(template);
+        Template result = templateService.saveTemplate(template);
+        assertEquals(template, result);
+        verify(templateRepository, times(1)).save(template);
+    }
+
+    @Test
+    void testDeleteTemplate() {
+        Long id = 1L;
+        doNothing().when(templateRepository).deleteById(id);
+        templateService.deleteTemplate(id);
+        verify(templateRepository, times(1)).deleteById(id);
+    }
 }

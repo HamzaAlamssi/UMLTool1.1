@@ -21,4 +21,4 @@ public class Template {
 
     @Column(columnDefinition = "TEXT")
     private String diagramJson;
-}
+} 

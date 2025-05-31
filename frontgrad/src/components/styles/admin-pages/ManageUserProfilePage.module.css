@@ -14,10 +14,10 @@
   min-width: 0;
   margin-left: 250px;
   width: calc(100vw - 250px);
-  height: 100vh;
   background: #f5f5f5;
   overflow-y: auto;
   padding: 0;
+  max-height: 100vh;
 }
 
 /* Only show two cards per row, wrap to next line if more */
@@ -155,7 +155,7 @@
   gap: 0.7rem;
   width: 100%;
   overflow-y: auto;
-  max-height: 70vh;
+  max-height: 80vh;
 }
 
 /* Responsive: stack cards on small screens */

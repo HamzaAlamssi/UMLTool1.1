@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -23,7 +22,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
 @RestController
 @CrossOrigin(origins = { "http://localhost:3000", "http://localhost:5000" }, allowCredentials = "true")
 @RequestMapping("/auth")
@@ -49,7 +47,6 @@ public class AuthController {
         }
         // Create session and set context
         request.getSession(true);
-        log.debug("Login attempt - Email: {}, Password: {}", loginRequest.getEmail(), loginRequest.getPassword());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
@@ -85,14 +82,18 @@ public class AuthController {
         if (userLoginDetailsRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already exists");
         }
+        if (userLoginDetailsRepository.findByUsername(registerRequest.getUsername()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exists");
+        }
         UserLoginDetails newUser = new UserLoginDetails();
         newUser.setEmail(registerRequest.getEmail());
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         newUser.setRole(UserRoles.USER);
         newUser.setUsername(registerRequest.getUsername());
+        newUser.setFirstName(registerRequest.getFirstName());
+        newUser.setLastName(registerRequest.getLastName());
+        newUser.setOccupation(registerRequest.getOccupation());
         userLoginDetailsRepository.save(newUser);
-        log.debug("Register attempt - Email: {}, Password: {}", registerRequest.getEmail(),
-                registerRequest.getPassword());
         return ResponseEntity.ok("User registered successfully");
     }
 
@@ -105,8 +106,6 @@ public class AuthController {
             Optional<UserLoginDetails> userOpt = userLoginDetailsRepository.findByEmail(email);
             if (userOpt.isPresent()) {
                 UserLoginDetails user = userOpt.get();
-                // Log user info
-                log.info("Fetched user info: {}", user);
                 // Return all user info (except password)
                 Map<String, Object> userInfo = new HashMap<>();
                 userInfo.put("email", user.getEmail());
@@ -148,5 +147,8 @@ public class AuthController {
         private String email;
         private String password;
         private String username;
+        private String firstName;
+        private String lastName;
+        private String occupation;
     }
 }
