@@ -205,7 +205,7 @@
   gap: 0.9rem;
   background: none;
   border: none;
-  color: #e74c3c;
+  olor: #22645c;
   font-size: 1.07rem;
   font-weight: 500;
   padding: 0.7rem 1rem;
@@ -225,7 +225,9 @@
 
 .logout:hover,
 .logout:focus {
-  background: #fbeee6;
-  color: #c0392b;
+  background: #e6f2f1;
+    color: #348983;
   transform: scale(1.04);
 }
+
+/* Updated toolbar styles to match the sidebar */

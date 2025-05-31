@@ -36,23 +36,19 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
-
-                    registry.requestMatchers("/auth/**", "auth/login", "auth/register", "/error").permitAll();
+                    registry.requestMatchers(
+                            "/auth/**",
+                            "auth/login",
+                            "auth/register",
+                            "/api/admin/add-admin",
+                            "/error").permitAll();
                     registry.anyRequest().authenticated();
-
-                    // }).formLogin(httpSecurityFormLoginConfigurer -> {
-                    // httpSecurityFormLoginConfigurer
-                    // .loginPage("/auth/login")
-                    // .successHandler(new AuthenticationSuccessHandler())
-                    // .permitAll();
                 })
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .invalidSessionUrl("/")
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false))
-                // .logout(logout ->
-                // logout.deleteCookies("JSESSIONID").invalidateHttpSession(true))
                 .build();
     }
 

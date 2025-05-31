@@ -3,18 +3,36 @@ import Header from "../components/ProjectHeader";
 import ChatSidebar from "../components/ChatSidebar";
 import ShareModal from "../components/ShareModal";
 import CollaboratorsModal from "../components/CollaboratorsModal";
-import UmlEditor from "./yaqeen.jsx";
+import UmlEditor from "./UMLEditor.jsx";
 import { useParams } from "react-router-dom";
+import { useProjects } from "../context/ProjectContext";
+import { ProjectGroupProvider, useProjectGroup, useProjectPermission } from "../context/ProjectGroupContext";
 
-function ProjectPage() {
+function getOwnerPermission(user, project) {
+  if (!user || !project) return false;
+  // Accept both username and email for owner check
+  if (
+    (project.ownerUsername && user.username && project.ownerUsername === user.username) ||
+    (project.ownerEmail && user.email && project.ownerEmail.toLowerCase() === user.email.toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function ProjectPageInner({ projectId }) {
   const editorRef = useRef(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
   const [project, setProject] = useState(null);
   const [initialModel, setInitialModel] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const { id: projectId } = useParams();
+  const { user } = useProjects();
+  const [error, setError] = useState(null);
+  const { group, loading: groupLoading } = useProjectGroup();
+  const [modalState, setModalState] = useState(null); // 'share' | 'collab' | null
+  const isOwner = getOwnerPermission(user, project);
+  const permission = isOwner ? 'OWNER' : useProjectPermission(user, project, group);
 
   useEffect(() => {
     if (!projectId) return;
@@ -45,24 +63,25 @@ function ProjectPage() {
           setInitialModel(null);
           console.info("[ProjectPage] No diagram_json found, initialModel set to null");
         }
+      })
+      .catch((err) => {
+        setError("Failed to load project data. Please try again later.");
+        console.error(err);
       });
   }, [projectId]);
 
-
-    useEffect(() => {
-    fetch("http://localhost:9000/auth/aUser", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        console.log("Fetched currentUser:", data);
-        setCurrentUser(data);
-      });
-  }, []);
   return (
     <>
       <Header
         editorInstance={editorRef}
         onMessagesClick={() => setChatOpen((v) => !v)}
-        onShareClick={() => setShareOpen(true)}
+        onShareClick={() => {
+          if (group) setModalState('collab');
+          else setModalState('share');
+        }}
+        projectName={project?.name}
+        projectOwner={project?.ownerUsername}
+        permission={permission}
       />
       <div style={{ padding: "1rem" }}>
         {project ? (
@@ -70,43 +89,62 @@ function ProjectPage() {
             <h2>
               Project: {project.name} (Type: {project.diagramType})
             </h2>
-            <div>Owner: {project.owner && project.owner.username}</div>
+            <div>Owner: {project.ownerUsername}</div>
+            {project.groupName && (
+              <div>
+                <strong>Group:</strong> {project.groupName}
+                <br />
+                <strong>Members:</strong> {project.groupMembers && project.groupMembers.join(", ")}
+              </div>
+            )}
           </div>
         ) : (
-          <div>Loading project...</div>
+          <div style={{ textAlign: 'center', color: '#888', marginTop: '2em' }}>
+            Loading project details, please wait...
+          </div>
         )}
       </div>
       <UmlEditor
-      ref={editorRef}
-      projectId={projectId}
-      initialModel={initialModel}
+        ref={editorRef}
+        projectId={projectId}
+        initialModel={initialModel}
+        permission={permission}
       />
-      {chatOpen && (
+      {chatOpen && (permission === 'OWNER' || permission === 'EDIT' || permission === 'READONLY') && (
         <ChatSidebar
           onClose={() => setChatOpen(false)}
           projectId={projectId}
-          currentUser={currentUser}
+          currentUser={user}
+          permission={permission}
         />
       )}
       <ShareModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        onManageCollaborators={() => {
-          setShareOpen(false);
-          setCollabOpen(true);
-        }}
+        open={modalState === 'share' && permission === 'OWNER'}
+        onClose={() => setModalState(null)}
+        onManageCollaborators={() => setModalState('collab')}
         projectId={projectId}
       />
       <CollaboratorsModal
-        open={collabOpen}
-        onClose={() => setCollabOpen(false)}
-        onAdd={() => {
-          setCollabOpen(false);
-          setShareOpen(true);
-        }}
+        open={modalState === 'collab' && permission === 'OWNER'}
+        onClose={() => setModalState(null)}
+        onAdd={() => setModalState('share')}
+        project={project}
       />
+      {/* If error state is used, ensure it is friendly */}
+      {error && (
+        <div style={{ color: 'red', textAlign: 'center', marginTop: '2em' }}>
+          Oops! Something went wrong: {error}
+        </div>
+      )}
     </>
   );
 }
 
-export default ProjectPage;
+export default function ProjectPageWrapper() {
+  const { id: projectId } = useParams();
+  return (
+    <ProjectGroupProvider projectId={projectId}>
+      <ProjectPageInner projectId={projectId} />
+    </ProjectGroupProvider>
+  );
+}

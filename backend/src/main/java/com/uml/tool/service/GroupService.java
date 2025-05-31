@@ -36,21 +36,31 @@ public class GroupService {
 
         Group group = Group.builder()
                 .name(request.getGroupName())
+                .cursorColor(request.getCursorColor())
                 .project(project)
                 .build();
+
+        if (request.getMembers() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Members list cannot be null");
+        }
 
         List<GroupMember> members = new ArrayList<>();
         for (GroupMemberRequest memberReq : request.getMembers()) {
             UserLoginDetails user = userRepository.findByEmail(memberReq.getEmail())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found: " + memberReq.getEmail()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "User not found: " + memberReq.getEmail()));
+
             GroupMember.Permission perm;
             try {
                 perm = GroupMember.Permission.valueOf(memberReq.getPermission());
             } catch (Exception e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid permission: " + memberReq.getPermission());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid permission: " + memberReq.getPermission());
             }
             // Don't add owner as member
-            if (user.getEmail().equals(project.getOwner().getEmail())) continue;
+            if (user.getEmail().equals(project.getOwner().getEmail()))
+                continue;
+
             GroupMember member = GroupMember.builder()
                     .group(group)
                     .user(user)
@@ -62,5 +72,45 @@ public class GroupService {
         Group savedGroup = groupRepository.save(group);
         groupMemberRepository.saveAll(members);
         return savedGroup;
+    }
+
+    public Group getGroupByProjectId(Long projectId) {
+        return groupRepository.findByProjectId(projectId);
+    }
+
+    @Transactional
+    public GroupMember addMemberToGroup(Long groupId, String email, String permission) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+        UserLoginDetails user = userRepository.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        GroupMember.Permission perm;
+        try {
+            perm = GroupMember.Permission.valueOf(permission);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid permission");
+        }
+        boolean exists = group.getMembers().stream().anyMatch(m -> m.getUser().getEmail().equals(email));
+        if (exists) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already a member");
+        }
+        GroupMember member = GroupMember.builder()
+                .group(group)
+                .user(user)
+                .permission(perm)
+                .build();
+        group.getMembers().add(member);
+        groupMemberRepository.save(member);
+        groupRepository.save(group);
+        return member;
+    }
+
+    @Transactional
+    public void removeMemberFromGroup(Long groupId, String email) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+        GroupMember member = group.getMembers().stream()
+                .filter(m -> m.getUser().getEmail().equals(email))
+                .findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Member not found"));
+        group.getMembers().remove(member);
+        groupMemberRepository.delete(member);
+        groupRepository.save(group);
     }
 }

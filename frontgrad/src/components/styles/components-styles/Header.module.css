@@ -3,15 +3,15 @@
   left: 0;
   top: 0;
   height: 70px;
-  background: #fff;
+  background: #B4B4B4;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   position: fixed;
   z-index: 1100;
-  border-radius: 0 0 1.2rem 1.2rem;
+  border-radius: 0; /* Changed to square edges */
 }
 
 .logoSearch {
@@ -92,11 +92,69 @@
 }
 
 .iconButton:hover {
-  background: #e6f2f1;
-  border: 1px solid #348983;
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .buttonIcon {
   width: 22px;
   height: 22px;
+}
+
+.centerUserInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 0.7rem;
+}
+
+.userImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(52, 137, 131, 0.10);
+  margin-bottom: 0;
+}
+
+.userEmail {
+  font-size: 1.08rem;
+  color: #22645c;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0.95;
+  text-align: center;
+}
+
+.userRole {
+  margin-left: 0.5em;
+  color: #fff;
+  background: #348983;
+  border-radius: 0.7em;
+  padding: 0.1em 0.7em;
+  font-size: 0.92em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  vertical-align: middle;
+}
+
+body.dark-mode {
+  background: #1a232a;
+  color: #e0e0e0;
+}
+
+.dark-mode .header {
+  background: #232c33;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.18);
+}
+
+.dark-mode .userEmail {
+  color: #e0e0e0;
+}
+
+.dark-mode .iconButton:hover {
+  background: #2d3a40;
+  border: 1px solid #5eead4;
 }

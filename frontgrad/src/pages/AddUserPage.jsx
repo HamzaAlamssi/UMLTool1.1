@@ -95,7 +95,7 @@ const AddUserPage = () => {
       />
       <main className={styles.main}>
         <div className={styles.formContainer}>
-          <h1>Add New User</h1>
+          <h1 className={styles.addUserHeader}>Add New User</h1>
           <form onSubmit={handleSubmit} autoComplete="off">
             <div className={styles.formGroup}>
               <label>First Name</label>
@@ -107,9 +107,7 @@ const AddUserPage = () => {
                 required
                 autoComplete="off"
               />
-              {errors.firstName && (
-                <div className={styles.passwordStrength}>{errors.firstName}</div>
-              )}
+              {errors.firstName && <div className={styles.errorMessage}>First name is required.</div>}
             </div>
             <div className={styles.formGroup}>
               <label>Last Name</label>
@@ -121,9 +119,7 @@ const AddUserPage = () => {
                 required
                 autoComplete="off"
               />
-              {errors.lastName && (
-                <div className={styles.passwordStrength}>{errors.lastName}</div>
-              )}
+              {errors.lastName && <div className={styles.errorMessage}>Last name is required.</div>}
             </div>
             <div className={styles.formGroup}>
               <label>Username</label>
@@ -135,9 +131,7 @@ const AddUserPage = () => {
                 required
                 autoComplete="off"
               />
-              {errors.username && (
-                <div className={styles.passwordStrength}>{errors.username}</div>
-              )}
+              {errors.username && <div className={styles.errorMessage}>Username is required.</div>}
             </div>
             <div className={styles.formGroup}>
               <label>Email Address</label>
@@ -149,9 +143,7 @@ const AddUserPage = () => {
                 required
                 autoComplete="off"
               />
-              {errors.email && (
-                <div className={styles.passwordStrength}>{errors.email}</div>
-              )}
+              {errors.email && <div className={styles.errorMessage}>Email is required.</div>}
             </div>
             <div className={styles.formGroup}>
               <label>Password</label>
@@ -173,20 +165,14 @@ const AddUserPage = () => {
                   {showPassword ? <FaEye /> : <FaEyeSlash />}
                 </button>
               </div>
-              {errors.password && (
-                <div className={styles.passwordStrength}>{errors.password}</div>
-              )}
+              {errors.password && <div className={styles.errorMessage}>Password is required.</div>}
             </div>
             {errors.general && (
-              <div style={{ color: "#e74c3c", fontWeight: 600, marginBottom: "1rem", fontSize: "1.08rem" }}>
-                {errors.general}
+              <div className={styles.errorMessage}>
+                Oops! Something went wrong: {errors.general}
               </div>
             )}
-            {success && (
-              <div style={{ color: "#388e3c", fontWeight: 600, marginBottom: "1rem", fontSize: "1.08rem" }}>
-                {success}
-              </div>
-            )}
+            {success && <div className={styles.successMessage}>🎉 {success}</div>}
             <button type="submit" className={styles.btn}>
               Add User
             </button>

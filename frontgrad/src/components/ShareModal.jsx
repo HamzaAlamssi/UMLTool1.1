@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import styles from "./styles/components-styles/ShareModal.module.css";
+import { useProjectGroup } from "../context/ProjectGroupContext";
+import { useProjects } from "../context/ProjectContext";
 
 function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
   const [groupName, setGroupName] = useState("");
@@ -7,15 +9,19 @@ function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [collaborators, setCollaborators] = useState([]);
   const [cursorColor, setCursorColor] = useState("#ff00ff");
+  const { createGroup, loading, error } = useProjectGroup();
+  const { user } = useProjects();
 
   if (!open) return null;
 
   const handleAddCollaborator = (e) => {
     e.preventDefault();
-    if (
-      collaboratorEmail.trim() &&
-      !collaborators.includes(collaboratorEmail.trim())
-    ) {
+    if (!collaboratorEmail.trim()) return;
+    if (user && collaboratorEmail.trim().toLowerCase() === user.email?.toLowerCase()) {
+      alert("You cannot add yourself as a collaborator.");
+      return;
+    }
+    if (!collaborators.includes(collaboratorEmail.trim())) {
       setCollaborators([...collaborators, collaboratorEmail.trim()]);
       setCollaboratorEmail("");
     }
@@ -35,40 +41,23 @@ function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
       alert("Project ID not found.");
       return;
     }
-    try {
-      const permMap = {
-        editor: "EDIT",
-        viewer: "VIEW",
-        commenter: "READONLY",
-      };
-      const members = collaborators.map((email) => ({
-        email,
-        permission: permMap[permission] || "EDIT",
-      }));
-      const payload = {
-        projectId,
-        groupName,
-        members,
-      };
-      const res = await fetch("http://localhost:9000/api/groups", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Failed to create group");
-      }
-      alert("Group created successfully!");
+    const permMap = {
+      editor: "EDIT",
+      viewer: "VIEW",
+      commenter: "READONLY",
+    };
+    const members = collaborators.map((email) => ({
+      email,
+      permission: permMap[permission] || "EDIT",
+    }));
+    const success = await createGroup({ groupName, members, cursorColor });
+    if (success) {
       setGroupName("");
       setCollaborators([]);
       setCollaboratorEmail("");
       setPermission("editor");
       setCursorColor("#ff00ff");
-      onClose && onClose();
-    } catch (err) {
-      alert(err.message || "Failed to create group");
+      onManageCollaborators && onManageCollaborators();
     }
   };
 
@@ -82,7 +71,7 @@ function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
         >
           ×
         </button>
-        <h2 className={styles.title}>Share “Use case diagram”</h2>
+        <h2 className={styles.title}>Share "Use case diagram"</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <section className={styles.section}>
             <div className={styles.row}>
@@ -161,12 +150,14 @@ function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
               onChange={(e) => setCursorColor(e.target.value)}
               className={styles.colorInput}
             />
+            {error && <div style={{ color: "red" }}>{error}</div>}
             <button
               className={styles.primaryBtn}
               type="submit"
               style={{ marginLeft: 12 }}
+              disabled={loading}
             >
-              Create group
+              {loading ? "Creating..." : "Create group"}
             </button>
           </section>
         </form>

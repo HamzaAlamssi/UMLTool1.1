@@ -14,26 +14,33 @@
   min-width: 0;
   margin-left: 250px;
   width: calc(100vw - 250px);
-  max-width: calc(100vw - 250px);
-  height: 100vh;
   background: #f5f5f5;
+  overflow-y: auto;
+  padding: 0;
+  max-height: 100vh;
 }
 
-.profileCard {
+/* Only show two cards per row, wrap to next line if more */
+@media (min-width: 1201px) {
+}
+
+@media (max-width: 1200px) {
+  .main {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem 0 0 0;
+    max-width: 100vw;
+  }
+}
+
+.profileCard::-webkit-scrollbar {
+  width: 8px;
   background: #f5f5f5;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-  padding: 2.5rem 2rem;
-  width: 100%;
-  max-width: 100%;
-  height: 100vh;
-  border-radius: 0;
-  margin: 0;
-  margin-left: 0;
-  position: relative;
-  left: 0;
-  top: 0;
-  z-index: 10;
-  overflow-y: auto;
+}
+.profileCard::-webkit-scrollbar-thumb {
+  background: #d2e6e4;
+  border-radius: 8px;
 }
 
 .profileHeader {
@@ -145,6 +152,20 @@
 
 .profileBody {
   padding: 1.5rem 0 0 0;
+  gap: 0.7rem;
+  width: 100%;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+/* Responsive: stack cards on small screens */
+@media (max-width: 1200px) {
+  .main {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem 0 0 0;
+  }
 }
 
 .profileField {
@@ -168,7 +189,7 @@
 .fieldValue {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: #fff;
   padding: 0.5rem 0.7rem;
   border-radius: 0.7rem;
   border: 1px solid #e0e0e0;
@@ -178,9 +199,16 @@
   position: relative;
   width: 600px;
   max-width: 100%;
-  padding-right: 7.5rem;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 4px rgba(52, 137, 131, 0.07);
+  transition: background 0.2s;
+}
+
+.fieldValue:focus, .fieldValue:hover {
+  background: #eef7f6;
+  outline: none;
 }
 
 .fieldText {
@@ -232,15 +260,15 @@
   display: flex;
   align-items: center;
   background: #fff;
-  padding: 0.5rem 7.5rem 0.5rem 0.7rem;
+  padding: 0.5rem 0.7rem;
   border-radius: 0.7rem;
   border: 1px solid #e0e0e0;
   font-size: 0.95rem;
   height: 3rem;
   min-height: 3rem;
   position: relative;
-  width: 600px;
-  max-width: 100%;
+  width: 100%; /* Make select take full width of parent */
+  max-width: 1000px; /* Match input field's max width */
   margin-left: auto;
   margin-right: auto;
   white-space: normal;
@@ -248,4 +276,57 @@
   text-overflow: clip;
   font-weight: 600;
   color: #797979;
+}
+
+/* Make the native select element inside .selectInput take full width */
+select.selectInput {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+selectWdith {
+  width: 600px ;
+}
+.selectInputSmall {
+  width: 600px;
+  max-width: 100%;
+  min-width: 0;
+  height: 3rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid #e0e0e0;
+  font-size: 0.95rem;
+  background: #fff;
+  box-sizing: border-box;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+select.selectInputSmall {
+  width: 600px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 3rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.7rem;
+  border: 1px solid #e0e0e0;
+  font-size: 0.95rem;
+  background: #fff;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.changeBtn,
+.saveBtn {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+#file-upload,
+label[for="file-upload"] {
+  pointer-events: auto;
+  opacity: 1;
 }

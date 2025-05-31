@@ -9,12 +9,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .usersDashboard {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 0 0 250px; /* Start after sidebar (250px) */
+  width: calc(100vw - 250px); /* Take full width minus sidebar */
+  max-width: 100vw;
+  margin: 0 0 0 250px; /* Start after sidebar */
+  box-sizing: border-box;
 }
 
 .usersDashboardHeader {
@@ -88,6 +91,7 @@
   border: 2px solid transparent;
   cursor: pointer;
   transition: box-shadow 0.2s, border 0.2s;
+  margin-left: 2.5rem;
 }
 
 .userAvatar {
@@ -138,4 +142,26 @@
   text-align: center;
   padding: 2rem;
   color: #adb5bd;
+}
+
+/* For ViewUsersPage and DeleteUserPage: scrollable user list, sticky header */
+.userListContainer {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 0.5rem;
+}
+
+.stickyHeader, .userTableHeader {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(52,137,131,0.07);
+}
+
+@media (max-width: 1200px) {
+  .userListContainer {
+    max-height: 50vh;
+  }
 }

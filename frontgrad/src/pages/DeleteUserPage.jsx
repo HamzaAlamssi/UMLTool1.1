@@ -2,39 +2,17 @@ import React, { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
 import styles from "../components/styles/admin-pages/DeleteUserPage.module.css";
 import { FaUsers, FaSearch } from "react-icons/fa";
+import { useAdmin } from "../context/AdminContext";
 
 const DeleteUserPage = () => {
-  const [users, setUsers] = useState([]);
+  const { users, fetchUsers, deleteUsers, loading, error } = useAdmin();
   const [selected, setSelected] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
-
-  const fetchUsers = async (query = "") => {
-    setLoading(true);
-    setError("");
-    try {
-      const url = query
-        ? `http://localhost:9000/api/users/search?q=${encodeURIComponent(
-            query
-          )}`
-        : "http://localhost:9000/api/users";
-      const res = await fetch(url, { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
-      } else {
-        setError(await res.text());
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-    setLoading(false);
-  };
 
   useEffect(() => {
     fetchUsers();
+    // eslint-disable-next-line
   }, []);
 
   const handleSearch = (e) => {
@@ -50,26 +28,18 @@ const DeleteUserPage = () => {
 
   const deleteSelected = async () => {
     if (!window.confirm("Are you sure you want to delete selected users?")) return;
-    setError("");
     setSuccess("");
     try {
-      // Call admin endpoint for each selected user
-      await Promise.all(
-        selected.map(async (email) => {
-          const res = await fetch(`http://localhost:9000/api/admin/delete-user/${encodeURIComponent(email)}`, {
-            method: "DELETE",
-            credentials: "include",
-          });
-          if (!res.ok) throw new Error(await res.text());
-        })
-      );
+      await deleteUsers(selected);
       setSuccess("Users deleted successfully!");
       setSelected([]);
-      fetchUsers(searchTerm);
     } catch (err) {
-      setError(err.message);
+      // error is handled by context
     }
   };
+
+  // Filter users to only show those with role USER (not ADMIN)
+  const filteredUsers = users.filter(u => (u.role || u.roles || '').toString().toUpperCase().includes('USER') && !(u.role || u.roles || '').toString().toUpperCase().includes('ADMIN'));
 
   return (
     <div className={styles.container}>
@@ -103,7 +73,7 @@ const DeleteUserPage = () => {
                   display: "inline-block",
                 }}
               >
-                {users.length}
+                {filteredUsers.length}
               </span>
             </span>
             <div
@@ -142,47 +112,69 @@ const DeleteUserPage = () => {
               />
             </div>
           </div>
-          <div>
+          <div className={styles.userListContainer}>
             {loading ? (
-              <div>Loading...</div>
+              <div>Loading users, please wait...</div>
             ) : error ? (
-              <div className={styles.emptyState}>{error}</div>
+              <div className={styles.emptyState}>Oops! Something went wrong: {error}</div>
             ) : users.length === 0 ? (
-              <div className={styles.emptyState}>No users found</div>
+              <div className={styles.emptyState}>No users found. Try adjusting your search or add a new user!</div>
             ) : (
               <div className={styles.usersGrid}>
-                {users.map((user) => (
-                  <div
-                    key={user.email}
-                    className={`${styles.userCard} ${
-                      selected.includes(user.email) ? styles.selected : ""
-                    }`}
-                    onClick={() => toggleSelection(user.email)}
-                  >
-                    <div
-                      className={styles.checkboxContainer}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(user.email)}
-                        onChange={() => toggleSelection(user.email)}
-                      />
-                      <span className={styles.checkmark} />
-                    </div>
-                    <div className={styles.userAvatar}>
-                      {user.profileImage ? (
-                        <img src={user.profileImage} alt={user.username} />
-                      ) : user.firstName && user.lastName ? (
-                        `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-                      ) : (
-                        user.username[0].toUpperCase()
-                      )}
-                    </div>
-                    <div className={styles.userInfo}>
-                      <div className={styles.userName}>{user.username}</div>
-                      <div className={styles.userEmail}>{user.email}</div>
-                    </div>
+                {filteredUsers.reduce((rows, user, idx) => {
+                  if (idx % 2 === 0) rows.push([]);
+                  rows[rows.length - 1].push(user);
+                  return rows;
+                }, []).map((row, rowIdx) => (
+                  <div key={rowIdx} className={styles.userRow}>
+                    {row.map((user) => (
+                      <div
+                        key={user.email}
+                        className={`${styles.userCard} ${selected.includes(user.email) ? styles.selected : ""}`}
+                        onClick={(e) => {
+                          // Only toggle selection if clicking the checkbox or checkmark
+                          if (
+                            e.target.tagName === "INPUT" ||
+                            e.target.tagName === "SPAN"
+                          ) {
+                            toggleSelection(user.email);
+                          }
+                          // Otherwise, do nothing
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <div
+                          className={styles.checkboxContainer}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(user.email)}
+                            onChange={() => toggleSelection(user.email)}
+                          />
+                          <span className={styles.checkmark} />
+                        </div>
+                        <div className={styles.userAvatar}>
+                          {user.profileImage ? (
+                            <img src={user.profileImage} alt={user.username} />
+                          ) : user.firstName && user.lastName ? (
+                            `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                          ) : user.username ? (
+                            user.username[0]?.toUpperCase()
+                          ) : user.email ? (
+                            user.email[0]?.toUpperCase()
+                          ) : (
+                            "?"
+                          )}
+                        </div>
+                        <div className={styles.userInfo}>
+                          <div className={styles.userName}>{user.username}</div>
+                          <div className={styles.userEmail}>{user.email}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {row.length === 1 && <div className={styles.userCard} style={{ visibility: 'hidden' }} />} {/* For alignment if odd */}
+                    {rowIdx !== Math.floor(filteredUsers.length / 2) && <hr className={styles.rowDivider} />}
                   </div>
                 ))}
               </div>
@@ -193,8 +185,8 @@ const DeleteUserPage = () => {
               {selected.length} user(s) selected
             </div>
             {selected.length > 0 && (
-              <button className={styles.deleteBtn} onClick={deleteSelected}>
-                Delete Selected
+              <button className={styles.deleteBtn} onClick={deleteSelected} disabled={loading}>
+                {loading ? "Deleting..." : "Delete Selected"}
               </button>
             )}
             {success && (

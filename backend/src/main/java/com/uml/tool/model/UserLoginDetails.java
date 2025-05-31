@@ -10,13 +10,17 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-@Table(name = "UserLoginDetails", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
+@Table(name = "UserLoginDetails", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "username")
+})
 public class UserLoginDetails {
-    @Id
-    String email;
-
-    @Column(name = "username")
+    @Column(name = "username", unique = true, nullable = false)
     String username;
+
+    @Id
+    @Column(name = "email", unique = true, nullable = false)
+    String email;
 
     @Column(name = "password")
     String password;
@@ -35,4 +39,7 @@ public class UserLoginDetails {
 
     @Column(name = "profile_image", columnDefinition = "TEXT")
     String profileImage; // Can store Base64 or image URL
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 @Entity
@@ -21,11 +22,13 @@ public class Group {
     @JoinColumn(name = "project_id", unique = true)
     @JsonBackReference
     @ToString.Exclude
+    @JsonIgnoreProperties({"groups", "owner", "diagramJson", "createdAt", "updatedAt"})
     private Project project;
 
     private String name;
 
+    private String cursorColor;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<GroupMember> members;
 }

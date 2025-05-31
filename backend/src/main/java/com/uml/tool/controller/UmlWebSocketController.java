@@ -18,7 +18,13 @@ public class UmlWebSocketController {
     // Client sends to /app/uml.action
     @MessageMapping("/uml.action")
     public void handleUmlAction(@Payload UmlActionDTO action) {
-        logger.info("WebSocket UML action: type={}, elementType={}, projectId={}", action.getType(), action.getElementType(), action.getProjectId());
-        messagingTemplate.convertAndSend("/topic/uml-project-" + action.getProjectId(), action);
+        try {
+            logger.info("WebSocket UML action: type={}, elementType={}, projectId={}", action.getType(),
+                    action.getElementType(), action.getProjectId());
+            messagingTemplate.convertAndSend("/topic/uml-project-" + action.getProjectId(), action);
+        } catch (Exception ex) {
+            logger.error("Error handling UML action: {}", ex.getMessage(), ex);
+            // Optionally: send error to client or just log
+        }
     }
 }
