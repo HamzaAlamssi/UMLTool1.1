@@ -2,7 +2,8 @@ import React from "react";
 import styles from "./styles/components-styles/Header.module.css";
 import { useProjects } from "../context/ProjectContext";
 import { useNavigate } from "react-router-dom";
-import { FiUser } from "react-icons/fi";
+import { FiUser, FiSun, FiMoon, FiHelpCircle } from "react-icons/fi";
+import { useState, useEffect } from "react";
 
 
 function Header() {
@@ -11,6 +12,21 @@ function Header() {
   // Use a default avatar image
   const avatarUrl = user?.profileImage || "/image/default-avatar.png";
   const displayName = user?.email || user?.username || "Guest";
+
+  // Night mode state
+  const [darkMode, setDarkMode] = useState(() => {
+    // Try to read from localStorage or default to false
+    return localStorage.getItem("darkMode") === "true";
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
 
   return (
     <div className={styles.header}>
@@ -23,12 +39,6 @@ function Header() {
         onClick={() => navigate("/profile")}
         title="View Profile"
       >
-        {/* <img
-          src={avatarUrl}
-          alt="User Avatar"
-          className={styles.userImg}
-        /> */}
-
           {user?.profileImage ? (
             <img
               src={avatarUrl}
@@ -42,14 +52,7 @@ function Header() {
       </div>
       <div className={styles.headerButtons}>
         <button className={styles.iconButton}>
-          <img
-            src="/image/notifications.png"
-            alt="Notifications"
-            className={styles.buttonIcon}
-          />
-        </button>
-        <button className={styles.iconButton}>
-          <img src="/image/help.png" alt="Help" className={styles.buttonIcon} />
+          <FiHelpCircle size={22} color="#348983" />
         </button>
       </div>
     </div>

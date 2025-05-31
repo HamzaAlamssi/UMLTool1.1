@@ -57,7 +57,6 @@ public class UserController {
         try {
             boolean changingEmail = dto.getEmail() != null && !dto.getEmail().equals(email);
             boolean changingUsername = dto.getUsername() != null && !dto.getUsername().isBlank();
-            boolean changingOnlyPassword = !changingEmail && !changingUsername;
             // Only check for duplicate email if actually changing email
             if (changingEmail) {
                 userService.getUserByEmail(dto.getEmail()).ifPresent(existingUser -> {
@@ -66,7 +65,7 @@ public class UserController {
                 });
             }
             // Only check for duplicate username if actually changing username
-            if (changingUsername && !changingOnlyPassword) {
+            if (changingUsername) {
                 userService.findByUsername(dto.getUsername()).ifPresent(u -> {
                     if (!u.getEmail().equals(email)) {
                         throw new org.springframework.web.server.ResponseStatusException(

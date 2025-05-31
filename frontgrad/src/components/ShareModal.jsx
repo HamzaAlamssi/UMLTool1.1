@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./styles/components-styles/ShareModal.module.css";
 import { useProjectGroup } from "../context/ProjectGroupContext";
+import { useProjects } from "../context/ProjectContext";
 
 function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
   const [groupName, setGroupName] = useState("");
@@ -9,15 +10,18 @@ function ShareModal({ open, onClose, onManageCollaborators, projectId }) {
   const [collaborators, setCollaborators] = useState([]);
   const [cursorColor, setCursorColor] = useState("#ff00ff");
   const { createGroup, loading, error } = useProjectGroup();
+  const { user } = useProjects();
 
   if (!open) return null;
 
   const handleAddCollaborator = (e) => {
     e.preventDefault();
-    if (
-      collaboratorEmail.trim() &&
-      !collaborators.includes(collaboratorEmail.trim())
-    ) {
+    if (!collaboratorEmail.trim()) return;
+    if (user && collaboratorEmail.trim().toLowerCase() === user.email?.toLowerCase()) {
+      alert("You cannot add yourself as a collaborator.");
+      return;
+    }
+    if (!collaborators.includes(collaboratorEmail.trim())) {
       setCollaborators([...collaborators, collaboratorEmail.trim()]);
       setCollaboratorEmail("");
     }

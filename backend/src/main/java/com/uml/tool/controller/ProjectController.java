@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ public class ProjectController {
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createProject(@RequestBody ProjectCreateDTO dto) {
+    public ResponseEntity<?> createProject(@Valid @RequestBody ProjectCreateDTO dto) {
         try {
             Project project = projectService.createProject(dto.getName(), dto.getOwnerEmail());
             return ResponseEntity.ok(project);
@@ -76,7 +77,8 @@ public class ProjectController {
     }
 
     @PutMapping("/updateName")
-    public ResponseEntity<?> updateProjectName(@RequestParam Long projectId, @RequestBody String newName) {
+    public ResponseEntity<?> updateProjectName(@RequestParam Long projectId,
+            @RequestBody(required = false) String newName) {
         try {
             // Remove surrounding quotes if present
             if (newName != null && newName.length() > 1 && newName.startsWith("\"") && newName.endsWith("\"")) {

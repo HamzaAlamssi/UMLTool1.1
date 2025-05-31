@@ -16,7 +16,7 @@ import { useProjects } from "../context/ProjectContext";
 import Modal from "./Modal";
 import M2CModal from "./M2CModal";
 
-const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick, projectName, projectOwner }) => {
+const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick, projectName, projectOwner, permission }) => {
   const fileInputRef = useRef(null);
   const { id: projectId } = useParams();
   const navigate = useNavigate();
@@ -315,14 +315,16 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick, projectN
             }}>Clear</button>
           </div>
         </div>
-        {/* Save button */}
-        <button
-          className={`${styles.saveBtn} ${styles.smallBtn}`}
-          onClick={saveDiagramToDatabase}
-          title="Save diagram to database"
-        >
-          <MdSaveAlt style={{ marginRight: 4 }} /> Save
-        </button>
+        {/* Save button: Only OWNER/EDIT can see */}
+        {(permission === 'OWNER' || permission === 'EDIT') && (
+          <button
+            className={`${styles.saveBtn} ${styles.smallBtn}`}
+            onClick={saveDiagramToDatabase}
+            title="Save diagram to database"
+          >
+            <MdSaveAlt style={{ marginRight: 4 }} /> Save
+          </button>
+        )}
         {projectName && (
           <div className={styles.projectInfo}>
             <span className={styles.projectName}>{projectName}</span>
@@ -334,75 +336,84 @@ const ProjectHeader = ({ editorInstance, onMessagesClick, onShareClick, projectN
           </div>
         )}
       </div>
-      <div className={styles.rightSection}>
+      <div className={styles.rightSection} style={{ gap: '0.4rem', display: 'flex', alignItems: 'center' }}>
+        {/* Export always allowed */}
         <button
           className={styles.smallBtn + ' ' + styles.exportBtn}
           onClick={exportDiagram}
-          title="Export diagram as JSON"
+          title="Export diagram"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.3em', paddingRight: 12, background: '#4668D9', color: '#fff' }}
         >
           <span className={styles.iconWrap}><MdSaveAlt /></span>
-          <span className={styles.btnText}>Export JSON</span>
+          <span className={styles.btnText} style={{ marginLeft: 2 }}>Export</span>
         </button>
-        <button
-          className={styles.smallBtn + ' ' + styles.importBtn}
-          onClick={() => fileInputRef.current && fileInputRef.current.click()}
-          title="Import diagram from JSON"
-        >
-          <span className={styles.iconWrap}><MdFileUpload /></span>
-          <span className={styles.btnText}>Import JSON</span>
-        </button>
-        <input
-          type="file"
-          accept=".json"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={importDiagram}
-        />
-        {/* --- Java code generation/import buttons --- */}
-        <button
-          className={styles.smallBtn}
-          onClick={() => {
-            if (typeof projectName === 'string' && typeof window !== 'undefined') {
-              // Try to get diagram type from the DOM or a prop if available
-              const diagramType = window.__CURRENT_DIAGRAM_TYPE__ || (window.project && window.project.diagramType) || null;
-              if (diagramType && diagramType.toLowerCase() !== 'class') {
-                setShowM2CWarning(true);
-                return;
-              }
-            }
-            if (typeof window !== 'undefined' && window.project && window.project.diagramType && window.project.diagramType.toLowerCase() !== 'class') {
-              setShowM2CWarning(true);
-              return;
-            }
-            if (typeof projectDiagramType === 'string' && projectDiagramType.toLowerCase() !== 'class') {
-              setShowM2CWarning(true);
-              return;
-            }
-            // fallback: try to infer from model
-            const { classes = [], relationships = [] } = editorInstance?.current || {};
-            if (classes.some(c => c.type !== 'class')) {
-              setShowM2CWarning(true);
-              return;
-            }
-            const code = generateJavaCode(classes, relationships);
-            setGeneratedCode(code || '// No code generated');
-            setShowGeneratedCode(true);
-          }}
-          title="Generate Java Code from Model"
-        >
-          M2C
-        </button>
-        <button
-          className={styles.smallBtn}
-          onClick={() => setShowJavaImport(true)}
-          title="Import Java Code to Model"
-        >
-          C2M
-        </button>
+        {/* Import, M2C, C2M only for OWNER/EDIT */}
+        {(permission === 'OWNER' || permission === 'EDIT') && (
+          <>
+            <button
+              className={styles.smallBtn + ' ' + styles.importBtn}
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              title="Import diagram"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.3em', paddingRight: 12, background: '#2dd4bf', color: '#fff' }}
+            >
+              <span className={styles.iconWrap}><MdFileUpload /></span>
+              <span className={styles.btnText} style={{ marginLeft: 2 }}>Import</span>
+            </button>
+            <input
+              type="file"
+              accept=".json"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={importDiagram}
+            />
+            <button
+              className={styles.smallBtn}
+              onClick={() => {
+                if (typeof projectName === 'string' && typeof window !== 'undefined') {
+                  // Try to get diagram type from the DOM or a prop if available
+                  const diagramType = window.__CURRENT_DIAGRAM_TYPE__ || (window.project && window.project.diagramType) || null;
+                  if (diagramType && diagramType.toLowerCase() !== 'class') {
+                    setShowM2CWarning(true);
+                    return;
+                  }
+                }
+                if (typeof window !== 'undefined' && window.project && window.project.diagramType && window.project.diagramType.toLowerCase() !== 'class') {
+                  setShowM2CWarning(true);
+                  return;
+                }
+                if (typeof projectDiagramType === 'string' && projectDiagramType.toLowerCase() !== 'class') {
+                  setShowM2CWarning(true);
+                  return;
+                }
+                // fallback: try to infer from model
+                const { classes = [], relationships = [] } = editorInstance?.current || {};
+                if (classes.some(c => c.type !== 'class')) {
+                  setShowM2CWarning(true);
+                  return;
+                }
+                const code = generateJavaCode(classes, relationships);
+                setGeneratedCode(code || '// No code generated');
+                setShowGeneratedCode(true);
+              }}
+              title="Generate Java Code from Model"
+            >
+              M2C
+            </button>
+            <button
+              className={styles.smallBtn}
+              onClick={() => setShowJavaImport(true)}
+              title="Import Java Code to Model"
+            >
+              C2M
+            </button>
+          </>
+        )}
         {/* Share button */}
+        {permission === 'OWNER' && (
         <button className={styles.smallBtn} onClick={onShareClick}>
           <FaSlideshare style={{ marginRight: 4 }} /> Share
         </button>
+        )}
         {/* Messages button */}
         <button className={styles.messagesBtn} onClick={onMessagesClick}>
           <TbMessageChatbot style={{ marginRight: 4 }} /> Messages

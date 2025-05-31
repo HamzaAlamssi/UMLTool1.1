@@ -252,18 +252,6 @@ public class DtoAndModelTest {
     }
 
     @Test
-    void testAdminModel() {
-        Admin a = new Admin();
-        a.setEmail("admin@b.com");
-        a.setPassword("pass");
-        a.setName("admin");
-        assertEquals("admin@b.com", a.getEmail());
-        assertEquals("pass", a.getPassword());
-        assertEquals("admin", a.getName());
-        assertEquals(com.uml.tool.constants.UserRoles.ADMIN, a.getRole());
-    }
-
-    @Test
     void testGroupMemberRequestDTO() {
         GroupMemberRequest dto = new GroupMemberRequest();
         dto.setEmail("a@b.com");

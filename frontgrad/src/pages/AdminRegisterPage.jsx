@@ -9,7 +9,6 @@ function AdminRegisterPage() {
         password: "",
         firstName: "",
         lastName: "",
-        occupation: "",
     });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -78,9 +77,6 @@ function AdminRegisterPage() {
                             onClick={() => setIsPasswordVisible((v) => !v)}
                             style={{ cursor: "pointer" }}
                         />
-                    </div>
-                    <div className={styles.inputGroup}>
-                        <input type="text" name="occupation" placeholder="Occupation (optional)" value={form.occupation} onChange={handleChange} />
                     </div>
                     {error && <div style={{ color: "red", marginBottom: 8 }}>{error}</div>}
                     {success && <div style={{ color: "green", marginBottom: 8 }}>{success}</div>}

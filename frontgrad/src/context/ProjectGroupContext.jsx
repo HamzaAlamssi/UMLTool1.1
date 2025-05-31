@@ -6,6 +6,26 @@ export function useProjectGroup() {
   return useContext(ProjectGroupContext);
 }
 
+/**
+ * Returns the permission level for the current user in the current project group.
+ * Possible values: 'OWNER', 'EDIT', 'READONLY', 'VIEW', null
+ */
+export function useProjectPermission(user, project, group) {
+  if (!user || !project) return null;
+  if (project.owner?.email && user.email && project.owner.email.toLowerCase() === user.email.toLowerCase()) {
+    return 'OWNER';
+  }
+  if (group && Array.isArray(group.members)) {
+    const member = group.members.find(m => m.user?.email?.toLowerCase() === user.email?.toLowerCase());
+    if (member) {
+      if (member.permission === 'EDIT') return 'EDIT';
+      if (member.permission === 'READONLY') return 'READONLY';
+      if (member.permission === 'VIEW') return 'VIEW';
+    }
+  }
+  return null;
+}
+
 export function ProjectGroupProvider({ projectId, children }) {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(false);

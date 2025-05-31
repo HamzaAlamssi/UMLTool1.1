@@ -129,15 +129,16 @@
   left: 0;
   top: 0;
   height: 70px;
-  background: #fff;
+  background: #B4B4B4;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
   position: fixed;
   z-index: 1100;
-  border-radius: 0 0 1.2rem 1.2rem;
+  
 }
 
 .logoSearch {
