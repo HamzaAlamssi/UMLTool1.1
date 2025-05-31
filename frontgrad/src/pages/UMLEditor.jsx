@@ -46,7 +46,7 @@ body {
     border: 1.5px solid #e0e0e0;
     max-height: 90vh;
     overflow-y: auto;
-    border-radius: 0; /* Set square edges for the toolbar */
+    border-radius:0; /* Set square edges for the toolbar */
 }
 #toolbar.toolbar-visible {
     left: 10px;
