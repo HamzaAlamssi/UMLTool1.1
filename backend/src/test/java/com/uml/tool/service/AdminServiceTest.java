@@ -21,6 +21,14 @@ class AdminServiceTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private com.uml.tool.repository.ProjectRepository projectRepository;
+    @Mock
+    private com.uml.tool.repository.GroupRepository groupRepository;
+    @Mock
+    private com.uml.tool.repository.GroupMemberRepository groupMemberRepository;
+    @Mock
+    private ProjectService projectService;
     @InjectMocks
     private AdminService adminService;
 
@@ -53,6 +61,8 @@ class AdminServiceTest {
     @Test
     void testDeleteUserByEmail() {
         String email = "test@example.com";
+        when(projectRepository.findAll()).thenReturn(java.util.Collections.emptyList());
+        when(groupMemberRepository.findAll()).thenReturn(java.util.Collections.emptyList());
         adminService.deleteUserByEmail(email);
         verify(userRepository, times(1)).deleteByEmail(email);
     }

@@ -20,6 +20,10 @@ class ProjectServiceTest {
     private ProjectRepository projectRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private com.uml.tool.repository.MessageRepository messageRepository;
+    @Mock
+    private com.uml.tool.repository.GroupRepository groupRepository;
     @InjectMocks
     private ProjectService projectService;
 
@@ -121,8 +125,31 @@ class ProjectServiceTest {
     void testDeleteProject() {
         Long id = 1L;
         when(projectRepository.existsById(id)).thenReturn(true);
+        Project project = new Project();
+        when(projectRepository.findById(id)).thenReturn(java.util.Optional.of(project));
+        doNothing().when(messageRepository).deleteAllByProject(project);
+        doNothing().when(groupRepository).deleteByProjectId(id);
         projectService.deleteProject(id);
         verify(projectRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    void testDeleteProject_NotFound() {
+        Long id = 1L;
+        when(projectRepository.existsById(id)).thenReturn(false);
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class, () -> projectService.deleteProject(id));
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
+    void testDeleteProject_Conflict() {
+        Long id = 1L;
+        when(projectRepository.existsById(id)).thenReturn(true);
+        when(projectRepository.findById(id)).thenThrow(new RuntimeException("DB error"));
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class, () -> projectService.deleteProject(id));
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, ex.getStatusCode());
     }
 
     @Test
