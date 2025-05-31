@@ -32,7 +32,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .name(name)
                 .owner(owner)
-                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") 
+                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -76,13 +76,12 @@ public class ProjectService {
         }
         try {
             Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
-            // Delete all messages related to this project
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
             messageRepository.deleteAllByProject(project);
-            // Delete group related to this project
             groupRepository.deleteByProjectId(id);
-            // Now delete the project itself
             projectRepository.deleteById(id);
+        } catch (ResponseStatusException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Failed to delete project: " + ex.getMessage());
         }

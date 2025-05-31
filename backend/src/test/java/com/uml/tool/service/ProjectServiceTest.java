@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -105,6 +106,15 @@ class ProjectServiceTest {
     }
 
     @Test
+    void testGetProjectById_ThrowsResponseStatusException() {
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> projectService.getProjectById(123L));
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
     void testUpdateDiagram() {
         Long projectId = 1L;
         String diagramJson = "{}";
@@ -153,10 +163,72 @@ class ProjectServiceTest {
     }
 
     @Test
+    void testDeleteProject_ProjectNotFound_ThrowsResponseStatusException() {
+        Long id = 42L;
+        when(projectRepository.existsById(id)).thenReturn(true);
+        when(projectRepository.findById(id)).thenReturn(Optional.empty());
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> projectService.deleteProject(id));
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
     void testSaveProject() {
         Project project = new Project();
         when(projectRepository.save(project)).thenReturn(project);
         Project result = projectService.saveProject(project);
         assertEquals(project, result);
+    }
+
+    @Test
+    void testUpdateProjectName_Success() {
+        Long projectId = 1L;
+        String newName = "New Project Name";
+        Project project = new Project();
+        when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(projectRepository.save(project)).thenReturn(project);
+        projectService.updateProjectName(projectId, newName);
+        assertEquals(newName, project.getName());
+        verify(projectRepository, times(1)).save(project);
+    }
+
+    @Test
+    void testUpdateProjectName_NotFound() {
+        when(projectRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> projectService.updateProjectName(1L, "Name"));
+    }
+
+    @Test
+    void testGetOwnProjects_Success() {
+        String username = "user@example.com";
+        UserLoginDetails owner = new UserLoginDetails();
+        when(userRepository.findByEmail(username)).thenReturn(Optional.of(owner));
+        List<Project> projects = List.of(new Project(), new Project());
+        when(projectRepository.findByOwner(owner)).thenReturn(projects);
+        List<Project> result = projectService.getOwnProjects(username);
+        assertEquals(projects, result);
+        verify(projectRepository, times(1)).findByOwner(owner);
+    }
+
+    @Test
+    void testGetOwnProjectsByEmail_NotFound_ResponseStatusException() {
+        String email = "notfound2@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> projectService.getOwnProjectsByEmail(email));
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatusCode());
+    }
+
+    @Test
+    void testGetOwnProjects_NotFound_ResponseStatusException() {
+        String username = "notfounduser";
+        when(userRepository.findByEmail(username)).thenReturn(Optional.empty());
+        org.springframework.web.server.ResponseStatusException ex = assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> projectService.getOwnProjects(username));
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatusCode());
     }
 }

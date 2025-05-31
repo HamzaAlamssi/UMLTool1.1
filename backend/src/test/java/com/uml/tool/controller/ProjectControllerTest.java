@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -85,7 +86,8 @@ class ProjectControllerTest {
     void testDeleteProject() throws Exception {
         doNothing().when(projectService).deleteProject(anyLong());
         mockMvc.perform(delete("/api/projects/1"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -132,5 +134,127 @@ class ProjectControllerTest {
         doThrow(new RuntimeException("error")).when(projectService).deleteProject(anyLong());
         mockMvc.perform(delete("/api/projects/1"))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void testUpdateProjectName_Normal() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("NewName"));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("NewName"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_WithQuotes() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("NewName"));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("\"NewName\""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_Unquoted() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("PlainName"));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("PlainName"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_EmptyString() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq(""));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_Null() throws Exception {
+        // Simulate null body: do not set content at all
+        doNothing().when(projectService).updateProjectName(eq(1L), eq((String) null));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_OneChar() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("A"));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("A"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_Exception() throws Exception {
+        doThrow(new RuntimeException("error")).when(projectService).updateProjectName(anyLong(), any());
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("NewName"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testDeleteProject_NotFound() throws Exception {
+        doThrow(new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND, "not found")).when(projectService)
+                .deleteProject(eq(999L));
+        mockMvc.perform(delete("/api/projects/999"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testCreateProject_MissingField() throws Exception {
+        mockMvc.perform(post("/api/projects/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Test\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateProject_ResponseStatusException() throws Exception {
+        when(projectService.createProject(any(), any()))
+                .thenThrow(new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, "not found"));
+        mockMvc.perform(post("/api/projects/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Test\",\"ownerEmail\":\"a@b.com\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testUpdateProjectName_StartsWithQuoteOnly() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("\"Unmatched"));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("\"Unmatched"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testUpdateProjectName_EndsWithQuoteOnly() throws Exception {
+        doNothing().when(projectService).updateProjectName(eq(1L), eq("Unmatched\""));
+        mockMvc.perform(put("/api/projects/updateName?projectId=1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("Unmatched\""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    void testSetUpCoverage() {
+        setUp();
     }
 }

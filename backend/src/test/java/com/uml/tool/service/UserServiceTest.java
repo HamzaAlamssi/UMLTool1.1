@@ -100,4 +100,76 @@ class UserServiceTest {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
         assertDoesNotThrow(() -> userService.changePasswordByEmail("email", "newpass"));
     }
+
+    @Test
+    void testDeleteUserByEmailWithResult_UserDoesNotExist() {
+        String email = "notfound@example.com";
+        when(userRepository.existsByEmail(email)).thenReturn(false);
+        boolean result = userService.deleteUserByEmailWithResult(email);
+        assertFalse(result);
+        verify(userRepository, never()).deleteByEmail(anyString());
+    }
+
+    @Test
+    void testDeleteUserByEmailWithResult_UserExists() {
+        String email = "found@example.com";
+        when(userRepository.existsByEmail(email)).thenReturn(true);
+        boolean result = userService.deleteUserByEmailWithResult(email);
+        assertTrue(result);
+        verify(userRepository, times(1)).deleteByEmail(email);
+    }
+
+    @Test
+    void testChangePasswordWithResult_UserExists() {
+        String email = "test@example.com";
+        String newPassword = "newpass";
+        UserLoginDetails user = new UserLoginDetails();
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(newPassword)).thenReturn("encoded");
+        boolean result = userService.changePasswordWithResult(email, newPassword);
+        assertTrue(result);
+        verify(userRepository, times(1)).save(user);
+        verify(passwordEncoder, times(1)).encode(newPassword);
+    }
+
+    @Test
+    void testChangePasswordWithResult_UserNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        boolean result = userService.changePasswordWithResult("notfound@example.com", "pass");
+        assertFalse(result);
+    }
+
+    @Test
+    void testSaveUser() {
+        UserLoginDetails user = new UserLoginDetails();
+        when(userRepository.save(user)).thenReturn(user);
+        UserLoginDetails result = userService.saveUser(user);
+        assertEquals(user, result);
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void testUpdateUserProfile_ProfileImageSet() {
+        String email = "test@example.com";
+        UserLoginDetails updated = new UserLoginDetails();
+        updated.setProfileImage("imgdata");
+        UserLoginDetails existing = new UserLoginDetails();
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existing));
+        when(userRepository.save(any())).thenReturn(existing);
+        userService.updateUserProfile(email, updated);
+        assertEquals("imgdata", existing.getProfileImage());
+    }
+
+    @Test
+    void testUpdateUserProfile_EmailChanged() {
+        String email = "old@example.com";
+        UserLoginDetails updated = new UserLoginDetails();
+        updated.setEmail("new@example.com");
+        UserLoginDetails existing = new UserLoginDetails();
+        existing.setEmail(email);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existing));
+        when(userRepository.save(any())).thenReturn(existing);
+        userService.updateUserProfile(email, updated);
+        assertEquals("new@example.com", existing.getEmail());
+    }
 }
