@@ -5,7 +5,6 @@ import { useProjects } from "../context/ProjectContext";
 const occupationOptions = [
   "Student",
   "Teacher",
-  "Administration",
   "Management",
   "Other",
 ];

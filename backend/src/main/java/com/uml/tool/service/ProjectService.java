@@ -32,7 +32,7 @@ public class ProjectService {
         Project project = Project.builder()
                 .name(name)
                 .owner(owner)
-                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") // <-- valid Apollon model
+                .diagramJson("\"{\\\"classes\\\":[],\\\"relationships\\\":[]}\"") 
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

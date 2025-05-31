@@ -1517,13 +1517,13 @@ const UmlEditor = forwardRef(({ projectId, initialModel, permission }, ref) => {
       }
       if (mx >= deleteIcon.x && mx <= deleteIcon.x + deleteIcon.w && my >= deleteIcon.y && my <= deleteIcon.y + deleteIcon.h) {
         setClasses(prev => prev.filter(c => c.id !== obj.id));
-        setRelationships(prev => prev.filter(r => r.id !== rel.id)); // Filter by ID
-sendUmlAction({
-  type: 'delete',
-  elementType: 'relationship',
-  payload: rel, // Ensure rel includes id
-  projectId,
-});
+        setRelationships(prev => prev.filter(r => r.fromId !== obj.id && r.toId !== obj.id));
+        sendUmlAction({
+          type: 'delete',
+          elementType: 'class',
+          payload: obj,
+          projectId,
+        });
         return;
       }
     }
@@ -1685,7 +1685,7 @@ sendUmlAction({
         if (mx >= obj.x + 18 && mx <= obj.x + obj.width - 18 && my >= attrY - 12 && my <= attrY + 8) {
           showModal('Add Attribute', '', ({ name, visibility }) => {
             if (!isValidElementName(name)) {
-              alert('Invalid attribute name! Name must not be empty, start with a number, or start with: ' + forbiddenStartChars.join(' '));
+              alert('Invalid attribute name! Name must not be empty, start with a number, contain spaces, or start with: ' + forbiddenStartChars.join(' '));
               return;
             }
             setClasses(prev => prev.map(c =>
@@ -1743,7 +1743,7 @@ sendUmlAction({
         if (mx >= obj.x + 18 && mx <= obj.x + obj.width - 18 && my >= methodY - 12 && my <= methodY + 8) {
           showModal('Add Method', '', ({ name, visibility }) => {
             if (!isValidElementName(name)) {
-              alert('Invalid method name! Name must not be empty, start with a number, or start with: ' + forbiddenStartChars.join(' '));
+              alert('Invalid method name! Name must not be empty, start with a number, contain spaces, or start with: ' + forbiddenStartChars.join(' '));
               return;
             }
             setClasses(prev => prev.map(c =>
@@ -1853,8 +1853,9 @@ sendUmlAction({
     if (!name || typeof name !== 'string') return false;
     const trimmed = name.trim();
     if (!trimmed) return false;
-    if (/^\d/.test(trimmed)) return false; // starts with a number
+    if (/\d/.test(trimmed[0])) return false; // starts with a number
     if (forbiddenStartChars.includes(trimmed[0])) return false;
+    if (/\s/.test(trimmed)) return false; // no spaces allowed
     return true;
   };
 
@@ -1865,12 +1866,12 @@ sendUmlAction({
     if (!canEdit) return;
     showModal('Class Name', '', name => {
       if (!isValidElementName(name)) {
-        alert('Class name must not be empty or only numbers.');
+        alert('Class name must not be empty, only numbers, or contain spaces.');
         return;
       }
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newClass = UmlClass(x, y, name);
+      const newClass = UmlClass(x, y, name.trim());
       setClasses(prev => [...prev, newClass]);
       sendUmlAction({
         type: 'add',
@@ -1887,7 +1888,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newActor = Actor(x, y, name);
+      const newActor = Actor(x, y, name.trim());
       setClasses(prev => [...prev, newActor]);
       sendUmlAction({
         type: 'add',
@@ -1903,7 +1904,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newUseCase = UseCase(x, y, name);
+      const newUseCase = UseCase(x, y, name.trim());
       setClasses(prev => [...prev, newUseCase]);
       sendUmlAction({
         type: 'add',
@@ -1919,7 +1920,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 400;
       const y = 100 + Math.random() * 200;
-      const newSystem = SystemBoundary(x, y, name);
+      const newSystem = SystemBoundary(x, y, name.trim());
       setClasses(prev => [...prev, newSystem]);
       sendUmlAction({
         type: 'add',
@@ -1936,7 +1937,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newAction = ActionNode(x, y, name);
+      const newAction = ActionNode(x, y, name.trim());
       setClasses(prev => [...prev, newAction]);
       sendUmlAction({
         type: 'add',
@@ -2009,7 +2010,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newNodeElement = NodeElement(x,y,name);
+      const newNodeElement = NodeElement(x,y,name.trim());
       setClasses(prev => [...prev, newNodeElement]);
       sendUmlAction({
         type: 'add',
@@ -2025,7 +2026,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newArtifactElement = ArtifactElement(x,y,name);
+      const newArtifactElement = ArtifactElement(x,y,name.trim());
       setClasses(prev => [...prev, newArtifactElement]);
       sendUmlAction({
         type: 'add',
@@ -2041,7 +2042,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newDeviceElement = DeviceElement(x,y,name);
+      const newDeviceElement = DeviceElement(x,y,name.trim());
       setClasses(prev => [...prev, newDeviceElement]);
       sendUmlAction({
         type: 'add',
@@ -2057,7 +2058,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newComponentElement = ComponentElement(x, y, name);
+      const newComponentElement = ComponentElement(x, y, name.trim());
       setClasses(prev => [...prev, newComponentElement]);
       sendUmlAction({
         type: 'add',
@@ -2073,7 +2074,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newInterface = InterfaceElement(x, y, name);
+      const newInterface = InterfaceElement(x, y, name.trim());
       setClasses(prev => [...prev, newInterface]);
       sendUmlAction({
         type: 'add',
@@ -2089,7 +2090,7 @@ sendUmlAction({
       if (!name) return;
       const x = 100 + Math.random() * 600;
       const y = 100 + Math.random() * 400;
-      const newPortElement = PortElement(x, y, name);
+      const newPortElement = PortElement(x, y, name.trim());
       setClasses(prev => [...prev, newPortElement]);
       sendUmlAction({
         type: 'add',
@@ -2454,8 +2455,8 @@ function generateRelationshipId() {
     const classMatch = block.match(/class\s+(\w+)(?:\s+extends\s+(\w+))?/);
     if (!classMatch) return;
     
-    const className = classMatch[1];
-    const parentClass = classMatch[2];
+    const className = classMatch[1].trim();
+    const parentClass = classMatch[2] && classMatch[2].trim();
     const classBody = block.slice(classMatch.index + classMatch[0].length);
     
     // Create new class
@@ -2485,7 +2486,7 @@ function generateRelationshipId() {
     let fieldMatch;
     while ((fieldMatch = fieldRegex.exec(classBody)) !== null) {
       newClass.attributes.push({
-        name: `${fieldMatch[3]}: ${fieldMatch[2]}`,
+        name: `${fieldMatch[3].trim()}: ${fieldMatch[2].trim()}`,
         visibility: fieldMatch[1].toLowerCase()
       });
     }
@@ -2502,15 +2503,15 @@ while ((methodMatch = methodRegex.exec(classBody)) !== null) {
     .map(p => {
       const parts = p.split(/\s+/).filter(Boolean);
       return {
-        name: parts[1] || 'param',
-        type: parts[0] || 'Object'
+        name: (parts[1] || 'param').trim(),
+        type: (parts[0] || 'Object').trim()
       };
     });
 
   const paramString = params.map(p => `${p.name}: ${p.type}`).join(', ');
   
   newClass.methods.push({
-    name: `${methodMatch[3]}${params.length ? `(${paramString})` : '()'}: ${methodMatch[2]}`,
+    name: `${methodMatch[3].trim()}${params.length ? `(${paramString})` : '()'}: ${methodMatch[2].trim()}`,
     visibility: methodMatch[1].toLowerCase()
   });
 }

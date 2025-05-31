@@ -44,11 +44,6 @@ public class SecurityConfig {
                             "/error").permitAll();
                     registry.anyRequest().authenticated();
                 })
-                // .formLogin(form -> form
-                // .loginPage("/auth/login")
-                // .emailParameter("email") // Use email as the username field
-                // .passwordParameter("password")
-                // .permitAll())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .invalidSessionUrl("/")
