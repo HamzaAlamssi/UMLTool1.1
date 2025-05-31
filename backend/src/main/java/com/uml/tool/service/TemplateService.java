@@ -28,4 +28,4 @@ public class TemplateService {
     public void deleteTemplate(Long id) {
         templateRepository.deleteById(id);
     }
-}
+} 

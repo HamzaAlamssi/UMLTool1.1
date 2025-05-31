@@ -7,6 +7,5 @@ public class ProjectCreateDTO {
     private String name;
 
     private String ownerEmail;
-    private String diagramType;
     private String ownerUsername;
 }
